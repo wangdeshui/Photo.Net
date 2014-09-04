@@ -12,7 +12,7 @@ using System;
 namespace Photo.Net.Base.NativeWrapper
 {
 
-    internal static class NativeConstants
+    public static class NativeConstants
     {
         public const int MAX_PATH = 260;
 

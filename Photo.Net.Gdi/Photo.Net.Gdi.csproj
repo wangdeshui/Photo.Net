@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -41,10 +42,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Surfaces\SurfaceRender.cs">
+    <Compile Include="BoxedConstants.cs" />
+    <Compile Include="Event\DrawArgs.cs" />
+    <Compile Include="Event\RenderArgs.cs" />
+    <Compile Include="ImageMetadata.cs" />
+    <Compile Include="Graphic\NullGraphics.cs" />
+    <Compile Include="Graphic\PtnGraphics.cs" />
+    <Compile Include="Surfaces\SurfaceBox.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Surfaces\SurfaceRendererList.cs" />
+    <Compile Include="Surfaces\SurfaceBoxBaseRenderer.cs" />
+    <Compile Include="Surfaces\SurfaceBoxGraphicsRenderer.cs" />
+    <Compile Include="Surfaces\SurfaceBoxGridRenderer.cs" />
+    <Compile Include="Surfaces\SurfaceBoxRender.cs" />
+    <Compile Include="Surfaces\SurfaceBoxRenderList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

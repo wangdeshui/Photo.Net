@@ -13,10 +13,10 @@ using Photo.Net.Base.NativeWrapper;
 
 namespace Photo.Net.Base.Native
 {
-    internal static class NativeStructs
+    public static class NativeStructs
     {
         [StructLayout(LayoutKind.Sequential)]
-        internal struct PROCESS_INFORMATION
+        public struct PROCESS_INFORMATION
         {
             public IntPtr hProcess;
             public IntPtr hThread;
@@ -25,7 +25,7 @@ namespace Photo.Net.Base.Native
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        internal struct STATSTG
+        public struct STATSTG
         {
             public IntPtr pwcsName;
             public NativeConstants.STGTY type;
@@ -41,7 +41,7 @@ namespace Photo.Net.Base.Native
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto, Pack = 4)]
-        internal struct KNOWNFOLDER_DEFINITION
+        public struct KNOWNFOLDER_DEFINITION
         {
             public NativeConstants.KF_CATEGORY category;
             [MarshalAs(UnmanagedType.LPWStr)]
@@ -69,14 +69,14 @@ namespace Photo.Net.Base.Native
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
-        internal struct PROPERTYKEY
+        public struct PROPERTYKEY
         {
             public Guid fmtid;
             public uint pid;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto, Pack = 4)]
-        internal struct COMDLG_FILTERSPEC
+        public struct COMDLG_FILTERSPEC
         {
             [MarshalAs(UnmanagedType.LPWStr)]
             public string pszName;
@@ -85,7 +85,7 @@ namespace Photo.Net.Base.Native
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct SYSTEM_INFO
+        public struct SYSTEM_INFO
         {
             public ushort wProcessorArchitecture;
             public ushort wReserved;
@@ -101,7 +101,7 @@ namespace Photo.Net.Base.Native
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        internal struct OSVERSIONINFOEX
+        public struct OSVERSIONINFOEX
         {
             public static int SizeOf
             {
@@ -129,217 +129,217 @@ namespace Photo.Net.Base.Native
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct COPYDATASTRUCT
+        public struct COPYDATASTRUCT
         {
-            internal UIntPtr dwData;
-            internal uint cbData;
-            internal IntPtr lpData;
+            public UIntPtr dwData;
+            public uint cbData;
+            public IntPtr lpData;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct SHELLEXECUTEINFO
+        public struct SHELLEXECUTEINFO
         {
-            internal uint cbSize;
-            internal uint fMask;
-            internal IntPtr hwnd;
+            public uint cbSize;
+            public uint fMask;
+            public IntPtr hwnd;
             [MarshalAs(UnmanagedType.LPTStr)]
-            internal string lpVerb;
+            public string lpVerb;
             [MarshalAs(UnmanagedType.LPTStr)]
-            internal string lpFile;
+            public string lpFile;
             [MarshalAs(UnmanagedType.LPTStr)]
-            internal string lpParameters;
+            public string lpParameters;
             [MarshalAs(UnmanagedType.LPTStr)]
-            internal string lpDirectory;
-            internal int nShow;
-            internal IntPtr hInstApp;
-            internal IntPtr lpIDList;
+            public string lpDirectory;
+            public int nShow;
+            public IntPtr hInstApp;
+            public IntPtr lpIDList;
             [MarshalAs(UnmanagedType.LPTStr)]
-            internal string lpClass;
-            internal IntPtr hkeyClass;
-            internal uint dwHotKey;
-            internal IntPtr hIcon_or_hMonitor;
-            internal IntPtr hProcess;
+            public string lpClass;
+            public IntPtr hkeyClass;
+            public uint dwHotKey;
+            public IntPtr hIcon_or_hMonitor;
+            public IntPtr hProcess;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct MEMORYSTATUSEX
+        public struct MEMORYSTATUSEX
         {
-            internal uint dwLength;
-            internal uint dwMemoryLoad;
-            internal ulong ullTotalPhys;
-            internal ulong ullAvailPhys;
-            internal ulong ullTotalPageFile;
-            internal ulong ullAvailPageFile;
-            internal ulong ullTotalVirtual;
-            internal ulong ullAvailVirtual;
-            internal ulong ullAvailExtendedVirtual;
+            public uint dwLength;
+            public uint dwMemoryLoad;
+            public ulong ullTotalPhys;
+            public ulong ullAvailPhys;
+            public ulong ullTotalPageFile;
+            public ulong ullAvailPageFile;
+            public ulong ullTotalVirtual;
+            public ulong ullAvailVirtual;
+            public ulong ullAvailExtendedVirtual;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct OVERLAPPED
+        public struct OVERLAPPED
         {
-            internal UIntPtr Internal;
-            internal UIntPtr InternalHigh;
-            internal uint Offset;
-            internal uint OffsetHigh;
-            internal IntPtr hEvent;
+            public UIntPtr Internal;
+            public UIntPtr publicHigh;
+            public uint Offset;
+            public uint OffsetHigh;
+            public IntPtr hEvent;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct RGBQUAD
+        public struct RGBQUAD
         {
-            internal byte rgbBlue;
-            internal byte rgbGreen;
-            internal byte rgbRed;
-            internal byte rgbReserved;
+            public byte rgbBlue;
+            public byte rgbGreen;
+            public byte rgbRed;
+            public byte rgbReserved;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct BITMAPINFOHEADER
+        public struct BITMAPINFOHEADER
         {
-            internal uint biSize;
-            internal int biWidth;
-            internal int biHeight;
-            internal ushort biPlanes;
-            internal ushort biBitCount;
-            internal uint biCompression;
-            internal uint biSizeImage;
-            internal int biXPelsPerMeter;
-            internal int biYPelsPerMeter;
-            internal uint biClrUsed;
-            internal uint biClrImportant;
+            public uint biSize;
+            public int biWidth;
+            public int biHeight;
+            public ushort biPlanes;
+            public ushort biBitCount;
+            public uint biCompression;
+            public uint biSizeImage;
+            public int biXPelsPerMeter;
+            public int biYPelsPerMeter;
+            public uint biClrUsed;
+            public uint biClrImportant;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct BITMAPINFO
+        public struct BITMAPINFO
         {
-            internal BITMAPINFOHEADER bmiHeader;
-            internal RGBQUAD bmiColors;
+            public BITMAPINFOHEADER bmiHeader;
+            public RGBQUAD bmiColors;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal unsafe struct MEMORY_BASIC_INFORMATION
+        public unsafe struct MEMORY_BASIC_INFORMATION
         {
-            internal void* BaseAddress;
-            internal void* AllocationBase;
-            internal uint AllocationProtect;
-            internal UIntPtr RegionSize;
-            internal uint State;
-            internal uint Protect;
-            internal uint Type;
+            public void* BaseAddress;
+            public void* AllocationBase;
+            public uint AllocationProtect;
+            public UIntPtr RegionSize;
+            public uint State;
+            public uint Protect;
+            public uint Type;
         };
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        internal class LOGFONT
+        public class LOGFONT
         {
-            internal int lfHeight = 0;
-            internal int lfWidth = 0;
-            internal int lfEscapement = 0;
-            internal int lfOrientation = 0;
-            internal int lfWeight = 0;
-            internal byte lfItalic = 0;
-            internal byte lfUnderline = 0;
-            internal byte lfStrikeOut = 0;
-            internal byte lfCharSet = 0;
-            internal byte lfOutPrecision = 0;
-            internal byte lfClipPrecision = 0;
-            internal byte lfQuality = 0;
-            internal byte lfPitchAndFamily = 0;
+            public int lfHeight = 0;
+            public int lfWidth = 0;
+            public int lfEscapement = 0;
+            public int lfOrientation = 0;
+            public int lfWeight = 0;
+            public byte lfItalic = 0;
+            public byte lfUnderline = 0;
+            public byte lfStrikeOut = 0;
+            public byte lfCharSet = 0;
+            public byte lfOutPrecision = 0;
+            public byte lfClipPrecision = 0;
+            public byte lfQuality = 0;
+            public byte lfPitchAndFamily = 0;
 
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-            internal string lfFaceName = string.Empty;
+            public string lfFaceName = string.Empty;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct LOGBRUSH
+        public struct LOGBRUSH
         {
-            internal uint lbStyle;
-            internal uint lbColor;
-            internal int lbHatch;
+            public uint lbStyle;
+            public uint lbColor;
+            public int lbHatch;
         };
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct RGNDATAHEADER
+        public struct RGNDATAHEADER
         {
-            internal uint dwSize;
-            internal uint iType;
-            internal uint nCount;
-            internal uint nRgnSize;
-            internal RECT rcBound;
+            public uint dwSize;
+            public uint iType;
+            public uint nCount;
+            public uint nRgnSize;
+            public RECT rcBound;
         };
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct RGNDATA
+        public struct RGNDATA
         {
-            internal RGNDATAHEADER rdh;
+            public RGNDATAHEADER rdh;
 
-            internal unsafe static RECT* GetRectsPointer(RGNDATA* me)
+            public unsafe static RECT* GetRectsPointer(RGNDATA* me)
             {
                 return (RECT*)((byte*)me + sizeof(RGNDATAHEADER));
             }
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct POINT
+        public struct POINT
         {
-            internal int x;
-            internal int y;
+            public int x;
+            public int y;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct RECT
+        public struct RECT
         {
-            internal int left;
-            internal int top;
-            internal int right;
-            internal int bottom;
+            public int left;
+            public int top;
+            public int right;
+            public int bottom;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal unsafe struct PropertyItem
+        public unsafe struct PropertyItem
         {
-            internal int id;
-            internal uint length;
-            internal short type;
-            internal void* value;
+            public int id;
+            public uint length;
+            public short type;
+            public void* value;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal unsafe struct WINTRUST_DATA
+        public unsafe struct WINTRUST_DATA
         {
-            internal uint cbStruct;
-            internal IntPtr pPolicyCallbackData;
-            internal IntPtr pSIPClientData;
-            internal uint dwUIChoice;
-            internal uint fdwRevocationChecks;
-            internal uint dwUnionChoice;
-            internal void* pInfo; // pFile, pCatalog, pBlob, pSgnr, or pCert
-            internal uint dwStateAction;
-            internal IntPtr hWVTStateData;
-            internal IntPtr pwszURLReference;
-            internal uint dwProvFlags;
-            internal uint dwUIContext;
+            public uint cbStruct;
+            public IntPtr pPolicyCallbackData;
+            public IntPtr pSIPClientData;
+            public uint dwUIChoice;
+            public uint fdwRevocationChecks;
+            public uint dwUnionChoice;
+            public void* pInfo; // pFile, pCatalog, pBlob, pSgnr, or pCert
+            public uint dwStateAction;
+            public IntPtr hWVTStateData;
+            public IntPtr pwszURLReference;
+            public uint dwProvFlags;
+            public uint dwUIContext;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        internal unsafe struct WINTRUST_FILE_INFO
+        public unsafe struct WINTRUST_FILE_INFO
         {
-            internal uint cbStruct;
-            internal char* pcwszFilePath;
-            internal IntPtr hFile;
+            public uint cbStruct;
+            public char* pcwszFilePath;
+            public IntPtr hFile;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-        internal struct WINHTTP_CURRENT_USER_IE_PROXY_CONFIG
+        public struct WINHTTP_CURRENT_USER_IE_PROXY_CONFIG
         {
-            internal bool fAutoDetect;
-            internal IntPtr lpszAutoConfigUrl;
-            internal IntPtr lpszProxy;
-            internal IntPtr lpszProxyBypass;
+            public bool fAutoDetect;
+            public IntPtr lpszAutoConfigUrl;
+            public IntPtr lpszProxy;
+            public IntPtr lpszProxyBypass;
         };
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct SP_DEVINFO_DATA
+        public struct SP_DEVINFO_DATA
         {
             public uint cbSize;
             public Guid ClassGuid;

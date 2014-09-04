@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using Photo.Net.Core.Geometry;
 
 namespace Photo.Net.Core
 {

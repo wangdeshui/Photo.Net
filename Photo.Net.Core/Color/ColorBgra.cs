@@ -14,7 +14,7 @@ namespace Photo.Net.Core.Color
     /// </summary>
     [Serializable]
     [StructLayout(LayoutKind.Explicit)]
-    public struct ColorBgra
+    public struct ColorBgra : IColor
     {
         #region Propertys
 
@@ -42,7 +42,8 @@ namespace Photo.Net.Core.Color
         public const int RedChannel = 2;
         public const int AlphaChannel = 3;
 
-        public const int SizeOf = 4;
+        public const int Size = 4;
+        public int SizeOf { get { return Size; } }
 
         /// <summary>
         /// Gets or sets the byte value of the specified color channel.
@@ -1417,6 +1418,5 @@ namespace Photo.Net.Core.Color
         }
 
         #endregion
-
     }
 }

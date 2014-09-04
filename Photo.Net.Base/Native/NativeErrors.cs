@@ -41,7 +41,7 @@ namespace Photo.Net.Base.Native
     // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     //
 
-    internal enum NativeErrors
+    public enum NativeErrors
     {
         ERROR_SUCCESS = 0,
         ERROR_INVALID_FUNCTION = 1,

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Drawing;
+using Photo.Net.Core.Geometry;
 
 namespace Photo.Net.Core.BitVector
 {
@@ -131,6 +132,40 @@ namespace Photo.Net.Core.BitVector
             _bitArray[x + (y * Width)] = newValue;
         }
 
+        public void UnsafeSet(Point pt, bool newValue)
+        {
+            UnsafeSet(pt.X, pt.Y, newValue);
+        }
+
+        public void UnsafeSet(Rectangle rect, bool newValue)
+        {
+            for (int y = rect.Top; y < rect.Bottom; ++y)
+            {
+                for (int x = rect.Left; x < rect.Right; ++x)
+                {
+                    UnsafeSet(x, y, newValue);
+                }
+            }
+        }
+
+        public void UnsafeSet(Scanline scan, bool newValue)
+        {
+            int x = scan.X;
+            while (x < scan.X + scan.Length)
+            {
+                UnsafeSet(x, scan.Y, newValue);
+                ++x;
+            }
+        }
+
+        public void UnsafeSet(GeometryRegion region, bool newValue)
+        {
+            foreach (Rectangle rect in region.GetRegionScansReadOnlyInt())
+            {
+                UnsafeSet(rect, newValue);
+            }
+        }
+
         public bool UnsafeGet(int x, int y)
         {
             return _bitArray[x + (y * Width)];
@@ -176,6 +211,17 @@ namespace Photo.Net.Core.BitVector
             }
         }
 
+        public void UnsafeInvert(int x, int y)
+        {
+            UnsafeSet(x, y, !UnsafeGet(x, y));
+        }
+
+
+        public void UnsafeInvert(Point pt)
+        {
+            UnsafeInvert(pt.X, pt.Y);
+        }
+
         public void UnsafeInvert(Rectangle rect)
         {
             for (int y = rect.Top; y < rect.Bottom; ++y)
@@ -185,11 +231,6 @@ namespace Photo.Net.Core.BitVector
                     UnsafeInvert(x, y);
                 }
             }
-        }
-
-        public void UnsafeInvert(int x, int y)
-        {
-            UnsafeSet(x, y, !UnsafeGet(x, y));
         }
 
         public void UnsafeInvert(Scanline scan)

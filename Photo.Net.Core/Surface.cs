@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using Photo.Net.Base;
 using Photo.Net.Core.Color;
+using Photo.Net.Core.Geometry;
 using Photo.Net.Core.PixelOperation;
 
 namespace Photo.Net.Core
@@ -74,7 +75,7 @@ namespace Photo.Net.Core
         /// <remarks>
         /// Stride is defined as the number of bytes between the beginning of a row and
         /// the beginning of the next row. Thus, in loose C notation: stride = (byte *)&this[0, 1] - (byte *)&this[0, 0].
-        /// Stride will always be equal to <b>or greater than</b> Width * ColorBgra.SizeOf.
+        /// Stride will always be equal to <b>or greater than</b> Width * ColorBgra.Size.
         public int Stride
         {
             get { return this._stride; }
@@ -182,7 +183,7 @@ namespace Photo.Net.Core
 
             try
             {
-                stride = checked(width * ColorBgra.SizeOf);
+                stride = checked(width * ColorBgra.Size);
                 bytes = (long)height * (long)stride;
             }
 
@@ -256,8 +257,8 @@ namespace Photo.Net.Core
                     "bounds parameters must be a subset of this Surface's bounds");
             }
 
-            long offset = ((long)_stride * (long)y) + ((long)ColorBgra.SizeOf * (long)x);
-            long length = ((windowHeight - 1) * (long)_stride) + (long)windowWidth * (long)ColorBgra.SizeOf;
+            long offset = ((long)_stride * (long)y) + ((long)ColorBgra.Size * (long)x);
+            long length = ((windowHeight - 1) * (long)_stride) + (long)windowWidth * (long)ColorBgra.Size;
             MemoryBlock block = new MemoryBlock(this._scan0, offset, length);
             return new Surface(windowWidth, windowHeight, this._stride, block);
         }
@@ -336,12 +337,12 @@ namespace Photo.Net.Core
                 throw new ArgumentOutOfRangeException("x", x, "Out of bounds");
             }
 
-            return (long)x * ColorBgra.SizeOf;
+            return (long)x * ColorBgra.Size;
         }
 
         public long UnsafeGetColumnByteOffset(int x)
         {
-            return (long)x * ColorBgra.SizeOf;
+            return (long)x * ColorBgra.Size;
         }
 
         public long GetPointByteOffset(int x, int y)
@@ -401,13 +402,13 @@ namespace Photo.Net.Core
         /// </summary>
         public MemoryBlock GetRow(int y)
         {
-            return new MemoryBlock(_scan0, GetRowByteOffset(y), (long)_width * ColorBgra.SizeOf);
+            return new MemoryBlock(_scan0, GetRowByteOffset(y), (long)_width * ColorBgra.Size);
         }
 
         public bool IsContiguousMemoryRegion(Rectangle bounds)
         {
             bool oneRow = (bounds.Height == 1);
-            bool manyRows = (this.Stride == (this.Width * ColorBgra.SizeOf) &&
+            bool manyRows = (this.Stride == (this.Width * ColorBgra.Size) &&
                 this.Width == bounds.Width);
 
             return oneRow || manyRows;
@@ -703,15 +704,15 @@ namespace Photo.Net.Core
             }
         }
 
-        internal void GetDrawBitmapInfo(out IntPtr bitmapHandle, out Point childOffset, out Size parentSize)
+        public void GetDrawBitmapInfo(out IntPtr bitmapHandle, out Point childOffset, out Size parentSize)
         {
             MemoryBlock rootBlock = _scan0.GetRootMemoryBlock();
             long childOffsetBytes = this._scan0.Pointer.ToInt64() - rootBlock.Pointer.ToInt64();
             var childY = (int)(childOffsetBytes / this._stride);
-            var childX = (int)((childOffsetBytes - (childY * this._stride)) / ColorBgra.SizeOf);
+            var childX = (int)((childOffsetBytes - (childY * this._stride)) / ColorBgra.Size);
 
             childOffset = new Point(childX, childY);
-            parentSize = new Size(_stride / ColorBgra.SizeOf, childY + _height);
+            parentSize = new Size(_stride / ColorBgra.Size, childY + _height);
             bitmapHandle = rootBlock.BitmapHandle;
         }
 
@@ -735,7 +736,7 @@ namespace Photo.Net.Core
                 for (int y = 0; y < bd.Height; ++y)
                 {
                     Memory.Copy(surface.GetRowAddress(y),
-                        (byte*)bd.Scan0.ToPointer() + (y * bd.Stride), (ulong)bd.Width * ColorBgra.SizeOf);
+                        (byte*)bd.Scan0.ToPointer() + (y * bd.Stride), (ulong)bd.Width * ColorBgra.Size);
                 }
             }
 
@@ -759,7 +760,7 @@ namespace Photo.Net.Core
             }
 
             if (this._stride == source._stride &&
-                (this._width * ColorBgra.SizeOf) == this._stride &&
+                (this._width * ColorBgra.Size) == this._stride &&
                 this._width == source._width &&
                 this._height == source._height)
             {
@@ -767,7 +768,7 @@ namespace Photo.Net.Core
                 {
                     Memory.Copy(this._scan0.VoidStar,
                                 source._scan0.VoidStar,
-                                ((ulong)(_height - 1) * (ulong)_stride) + ((ulong)_width * (ulong)ColorBgra.SizeOf));
+                                ((ulong)(_height - 1) * (ulong)_stride) + ((ulong)_width * (ulong)ColorBgra.Size));
                 }
             }
             else
@@ -779,7 +780,7 @@ namespace Photo.Net.Core
                 {
                     for (int y = 0; y < copyHeight; ++y)
                     {
-                        Memory.Copy(UnsafeGetRowAddress(y), source.UnsafeGetRowAddress(y), (ulong)copyWidth * (ulong)ColorBgra.SizeOf);
+                        Memory.Copy(UnsafeGetRowAddress(y), source.UnsafeGetRowAddress(y), (ulong)copyWidth * (ulong)ColorBgra.Size);
                     }
                 }
             }
@@ -927,7 +928,7 @@ namespace Photo.Net.Core
                     {
                         ColorBgra* dst = this.UnsafeGetPointAddress(rect.Left, y);
                         ColorBgra* src = source.UnsafeGetPointAddress(rect.Left, y);
-                        Memory.Copy(dst, src, (ulong)rect.Width * (ulong)ColorBgra.SizeOf);
+                        Memory.Copy(dst, src, (ulong)rect.Width * (ulong)ColorBgra.Size);
                     }
                 }
             }
@@ -969,7 +970,7 @@ namespace Photo.Net.Core
                     {
                         ColorBgra* dst = this.UnsafeGetPointAddress(rect.Left, y);
                         ColorBgra* src = source.UnsafeGetPointAddress(rect.Left, y);
-                        Memory.Copy(dst, src, (ulong)rect.Width * (ulong)ColorBgra.SizeOf);
+                        Memory.Copy(dst, src, (ulong)rect.Width * (ulong)ColorBgra.Size);
                     }
                 }
             }

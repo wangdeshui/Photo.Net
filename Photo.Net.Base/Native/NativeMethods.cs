@@ -6,15 +6,15 @@ using Photo.Net.Base.NativeWrapper;
 
 namespace Photo.Net.Base.Native
 {
-    internal static class NativeMethods
+    public static class NativeMethods
     {
-        internal static bool SUCCEEDED(int hr)
+        public static bool SUCCEEDED(int hr)
         {
             return hr >= 0;
         }
 
         [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
-        internal static extern void SHGetFolderPathW(
+        public static extern void SHGetFolderPathW(
             IntPtr hwndOwner,
             int nFolder,
             IntPtr hToken,
@@ -94,7 +94,7 @@ namespace Photo.Net.Base.Native
         public static extern bool IsClipboardFormatAvailable(uint format);
 
         [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
-        internal static extern void SHCreateItemFromParsingName(
+        public static extern void SHCreateItemFromParsingName(
             [MarshalAs(UnmanagedType.LPWStr)] string pszPath,
             IntPtr pbc,
             ref Guid riid,
@@ -102,20 +102,20 @@ namespace Photo.Net.Base.Native
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool VerifyVersionInfo(
+        public static extern bool VerifyVersionInfo(
             ref NativeStructs.OSVERSIONINFOEX lpVersionInfo,
             uint dwTypeMask,
             ulong dwlConditionMask);
 
         [DllImport("kernel32.dll")]
-        internal static extern ulong VerSetConditionMask(
+        public static extern ulong VerSetConditionMask(
             ulong dwlConditionMask,
             uint dwTypeBitMask,
             byte dwConditionMask);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool DeviceIoControl(
+        public static extern bool DeviceIoControl(
             IntPtr hDevice,
             uint dwIoControlCode,
             IntPtr lpInBuffer,
@@ -127,30 +127,30 @@ namespace Photo.Net.Base.Native
 
         [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool ShellExecuteExW(ref NativeStructs.SHELLEXECUTEINFO lpExecInfo);
+        public static extern bool ShellExecuteExW(ref NativeStructs.SHELLEXECUTEINFO lpExecInfo);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool GlobalMemoryStatusEx(ref NativeStructs.MEMORYSTATUSEX lpBuffer);
+        public static extern bool GlobalMemoryStatusEx(ref NativeStructs.MEMORYSTATUSEX lpBuffer);
 
         [DllImport("shell32.dll", SetLastError = false)]
-        internal static extern void SHAddToRecentDocs(uint uFlags, IntPtr pv);
+        public static extern void SHAddToRecentDocs(uint uFlags, IntPtr pv);
 
         [DllImport("kernel32.dll", SetLastError = false)]
-        internal static extern void GetSystemInfo(ref NativeStructs.SYSTEM_INFO lpSystemInfo);
+        public static extern void GetSystemInfo(ref NativeStructs.SYSTEM_INFO lpSystemInfo);
 
         [DllImport("kernel32.dll", SetLastError = false)]
-        internal static extern void GetNativeSystemInfo(ref NativeStructs.SYSTEM_INFO lpSystemInfo);
+        public static extern void GetNativeSystemInfo(ref NativeStructs.SYSTEM_INFO lpSystemInfo);
 
         [DllImport("Wintrust.dll", PreserveSig = true, SetLastError = false)]
-        internal extern static unsafe int WinVerifyTrust(
+        public extern static unsafe int WinVerifyTrust(
             IntPtr hWnd,
             ref Guid pgActionID,
             ref NativeStructs.WINTRUST_DATA pWinTrustData
             );
 
         [DllImport("SetupApi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern IntPtr SetupDiGetClassDevsW(
+        public static extern IntPtr SetupDiGetClassDevsW(
             ref Guid ClassGuid,
             [MarshalAs(UnmanagedType.LPWStr)] string Enumerator,
             IntPtr hwndParent,
@@ -158,36 +158,36 @@ namespace Photo.Net.Base.Native
 
         [DllImport("SetupApi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool SetupDiDestroyDeviceInfoList(IntPtr DeviceInfoSet);
+        public static extern bool SetupDiDestroyDeviceInfoList(IntPtr DeviceInfoSet);
 
         [DllImport("SetupApi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool SetupDiEnumDeviceInfo(
+        public static extern bool SetupDiEnumDeviceInfo(
             IntPtr DeviceInfoSet,
             uint MemberIndex,
             ref NativeStructs.SP_DEVINFO_DATA DeviceInfoData);
 
         [DllImport("SetupApi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool SetupDiGetDeviceInstanceIdW(
+        public static extern bool SetupDiGetDeviceInstanceIdW(
             IntPtr DeviceInfoSet,
             ref NativeStructs.SP_DEVINFO_DATA DeviceInfoData,
             IntPtr DeviceInstanceId,
             uint DeviceInstanceIdSize,
             out uint RequiredSize);
 
-        internal static void ThrowOnWin32Error(string message)
+        public static void ThrowOnWin32Error(string message)
         {
             int lastWin32Error = Marshal.GetLastWin32Error();
             ThrowOnWin32Error(message, lastWin32Error);
         }
 
-        internal static void ThrowOnWin32Error(string message, NativeErrors lastWin32Error)
+        public static void ThrowOnWin32Error(string message, NativeErrors lastWin32Error)
         {
             ThrowOnWin32Error(message, (int)lastWin32Error);
         }
 
-        internal static void ThrowOnWin32Error(string message, int lastWin32Error)
+        public static void ThrowOnWin32Error(string message, int lastWin32Error)
         {
             if (lastWin32Error != NativeConstants.ERROR_SUCCESS)
             {

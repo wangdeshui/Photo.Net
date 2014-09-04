@@ -268,7 +268,7 @@ namespace Photo.Net.Core
                 throw new ArgumentOutOfRangeException("height", width, "height must be >= 0");
             }
 
-            this._length = width * height * ColorBgra.SizeOf;
+            this._length = width * height * ColorBgra.Size;
             this._parent = null;
             this._voidStar = Allocate(width, height, out this._bitmapHandle).ToPointer();
             this._valid = true;
@@ -493,7 +493,7 @@ namespace Photo.Net.Core
 
                 if (this._bitmapWidth != 0 || this._bitmapHeight != 0)
                 {
-                    long bytes = (long)this._bitmapWidth * (long)this._bitmapHeight * (long)ColorBgra.SizeOf;
+                    long bytes = (long)this._bitmapWidth * (long)this._bitmapHeight * (long)ColorBgra.Size;
 
                     if (bytes != this._length)
                     {

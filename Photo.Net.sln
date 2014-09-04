@@ -11,9 +11,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Photo.Net.Core", "Photo.Net
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Photo.Net.Algorithm", "Photo.Net.Algorithm\Photo.Net.Algorithm.csproj", "{426C6644-71D7-4DFC-9A64-4464D04E05FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Photo.Net.Control", "Photo.Net.Control\Photo.Net.Control.csproj", "{B92BA34F-5BDB-46F6-80BC-93E57C787382}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Photo.Net.Tool", "Photo.Net.Tool\Photo.Net.Tool.csproj", "{B92BA34F-5BDB-46F6-80BC-93E57C787382}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Photo.Net.Gdi", "Photo.Net.Gdi\Photo.Net.Gdi.csproj", "{7986DC38-09B5-42EC-94BC-963BFF8021FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Photo.Net.Resource", "Photo.Net.Resource\Photo.Net.Resource.csproj", "{5CB3B1B4-52AD-43C2-9460-08B2AF6423B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{7986DC38-09B5-42EC-94BC-963BFF8021FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7986DC38-09B5-42EC-94BC-963BFF8021FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7986DC38-09B5-42EC-94BC-963BFF8021FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CB3B1B4-52AD-43C2-9460-08B2AF6423B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CB3B1B4-52AD-43C2-9460-08B2AF6423B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CB3B1B4-52AD-43C2-9460-08B2AF6423B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CB3B1B4-52AD-43C2-9460-08B2AF6423B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

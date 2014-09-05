@@ -124,9 +124,8 @@ namespace Photo.Net.Gdi
         {
             if (_propertyItemImage == null)
             {
+                Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Photo.Net.Gdi.PropertyItem.png");
 
-                //                Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("PaintDotNet.SystemLayer.PropertyItem.jpeg");
-                Stream stream = new FileStream(@"C:\Users\shinetech\Pictures\F~.jpg", FileMode.Open);
                 _propertyItemImage = Image.FromStream(stream);
             }
 

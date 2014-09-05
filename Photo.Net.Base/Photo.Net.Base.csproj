@@ -54,7 +54,7 @@
     <Compile Include="Delegate\Procedure.cs" />
     <Compile Include="Delegate\ProgressEventArgs.cs" />
     <Compile Include="Delegate\ProgressEventHandler.cs" />
-    <Compile Include="Delegate\PropertyChange.cs" />
+    <Compile Include="PropertyChange.cs" />
     <Compile Include="Enums\ExifTagID.cs" />
     <Compile Include="Enums\ExifTagType.cs" />
     <Compile Include="Exceptions\WorkerThreadException.cs" />

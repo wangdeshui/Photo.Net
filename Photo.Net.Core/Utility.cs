@@ -789,5 +789,16 @@ namespace Photo.Net.Core
                 GC.WaitForPendingFinalizers();
             }
         }
+
+
+        public static Point GetRectangleCenter(Rectangle rect)
+        {
+            return new Point((rect.Left + rect.Right) / 2, (rect.Top + rect.Bottom) / 2);
+        }
+
+        public static PointF GetRectangleCenter(RectangleF rect)
+        {
+            return new PointF((rect.Left + rect.Right) / 2, (rect.Top + rect.Bottom) / 2);
+        }
     }
 }

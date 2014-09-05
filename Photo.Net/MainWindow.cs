@@ -1,6 +1,6 @@
 ﻿using System.Windows.Forms;
-using Photo.Net.Documents;
-using Photo.Net.IO;
+using Photo.Net.Tool.Documents;
+using Photo.Net.Tool.IO;
 
 namespace Photo.Net
 {
@@ -12,7 +12,6 @@ namespace Photo.Net
         {
             CheckForIllegalCrossThreadCalls = false;
             InitializeComponent();
-
 
             var dialog = new OpenFileDialog { CheckFileExists = true, CheckPathExists = true, FilterIndex = 0 };
 

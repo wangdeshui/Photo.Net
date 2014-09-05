@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -41,7 +42,30 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="BaseTool.cs" />
+    <Compile Include="Controls\PtnToolBar.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Documents\AppWorkspace.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="IO\FileType.cs" />
+    <Compile Include="IO\FileTypeFlags.cs" />
+    <Compile Include="IO\FileTypes.cs" />
+    <Compile Include="IO\Load\BitmapFileType.cs" />
+    <Compile Include="IO\Load\IndexedColorFileType.cs" />
+    <Compile Include="IO\Save\NoSaveConfig.cs" />
+    <Compile Include="IO\Save\SaveConfigToken.cs" />
+    <Compile Include="IO\Save\SaveConfigWidget.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PtnInfo.cs" />
+    <Compile Include="Tools\ControlShadow.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Controls\EtchedLine.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -57,8 +81,27 @@
     <Compile Include="Controls\ScrollPanel.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Documents\Document.cs" />
+    <Compile Include="Documents\DocumentMetadata.cs" />
+    <Compile Include="Documents\DocumentView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Documents\DocumentWorkspace.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Documents\IHistoryWorkspace.cs" />
+    <Compile Include="Events\IndexEventArgs.cs" />
+    <Compile Include="Events\IndexEventHandler.cs" />
+    <Compile Include="Events\MovingEventArgs.cs" />
+    <Compile Include="Events\MovingEventHandler.cs" />
+    <Compile Include="Events\RealParentWndProcDelegate.cs" />
+    <Compile Include="Events\StylusEventArgs.cs" />
     <Compile Include="IFormAssociate.cs" />
     <Compile Include="IHotKeyTarget.cs" />
+    <Compile Include="Images\Exif.cs" />
+    <Compile Include="Layer\BitmapLayer.cs" />
+    <Compile Include="Layer\ImageLayer.cs" />
+    <Compile Include="Layer\ImageLayerList.cs" />
     <Compile Include="Snap\HorizontalSnapEdge.cs" />
     <Compile Include="Snap\ISnapManagerHost.cs" />
     <Compile Include="Snap\ISnapObstacleHost.cs" />
@@ -68,7 +111,14 @@
     <Compile Include="Snap\SnapObstacle.cs" />
     <Compile Include="Snap\SnapRegion.cs" />
     <Compile Include="Snap\VerticalSnapEdge.cs" />
+    <Compile Include="Thumbnail\IThumbnailProvider.cs" />
     <Compile Include="WaitCursorChanger.cs" />
+    <Compile Include="Window\BaseWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Window\WindowEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Photo.Net.Base\Photo.Net.Base.csproj">
@@ -79,10 +129,16 @@
       <Project>{CAD65F3E-237D-46E5-9278-21BE029DB2E8}</Project>
       <Name>Photo.Net.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Photo.Net.Gdi\Photo.Net.Gdi.csproj">
+      <Project>{7986DC38-09B5-42EC-94BC-963BFF8021FD}</Project>
+      <Name>Photo.Net.Gdi</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Photo.Net.Resource\Photo.Net.Resource.csproj">
+      <Project>{5CB3B1B4-52AD-43C2-9460-08B2AF6423B0}</Project>
+      <Name>Photo.Net.Resource</Name>
+    </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Tools\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

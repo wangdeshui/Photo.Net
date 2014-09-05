@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
+using Photo.Net.Base;
 using Photo.Net.Base.Collection;
 using Photo.Net.Base.Delegate;
 
@@ -13,17 +14,17 @@ namespace Photo.Net.Tool.Snap
         private Dictionary<SnapObstacle, SnapDescription> obstacles =
             new Dictionary<SnapObstacle, SnapDescription>();
 
-        private const string isSnappedValueName = "IsSnapped";
-        private const string leftValueName = "Left";
-        private const string topValueName = "Top";
-        private const string widthValueName = "Width";
-        private const string heightValueName = "Height";
+        private const string IsSnappedValueName = "IsSnapped";
+        private const string LeftValueName = "Left";
+        private const string TopValueName = "Top";
+        private const string WidthValueName = "Width";
+        private const string HeightValueName = "Height";
 
-        private const string snappedToValueName = "SnappedTo";
-        private const string horizontalEdgeValueName = "HorizontalEdge";
-        private const string verticalEdgeValueName = "VerticalEdge";
-        private const string xOffsetValueName = "XOffset";
-        private const string yOffsetValueName = "YOffset";
+        private const string SnappedToValueName = "SnappedTo";
+        private const string HorizontalEdgeValueName = "HorizontalEdge";
+        private const string VerticalEdgeValueName = "VerticalEdge";
+        private const string XOffsetValueName = "XOffset";
+        private const string YOffsetValueName = "YOffset";
 
         private void SaveSnapObstacleData(ISimpleCollection<string, string> saveTo, SnapObstacle so)
         {
@@ -31,21 +32,21 @@ namespace Photo.Net.Tool.Snap
             SnapDescription sd = this.obstacles[so];
 
             bool isSnappedValue = (sd != null);
-            saveTo.Set(prefix + isSnappedValueName, isSnappedValue.ToString(CultureInfo.InvariantCulture));
+            saveTo.Set(prefix + IsSnappedValueName, isSnappedValue.ToString(CultureInfo.InvariantCulture));
 
             if (isSnappedValue)
             {
-                saveTo.Set(prefix + snappedToValueName, sd.SnappedTo.Name);
-                saveTo.Set(prefix + horizontalEdgeValueName, sd.HorizontalEdge.ToString());
-                saveTo.Set(prefix + verticalEdgeValueName, sd.VerticalEdge.ToString());
-                saveTo.Set(prefix + xOffsetValueName, sd.XOffset.ToString(CultureInfo.InvariantCulture));
-                saveTo.Set(prefix + yOffsetValueName, sd.YOffset.ToString(CultureInfo.InvariantCulture));
+                saveTo.Set(prefix + SnappedToValueName, sd.SnappedTo.Name);
+                saveTo.Set(prefix + HorizontalEdgeValueName, sd.HorizontalEdge.ToString());
+                saveTo.Set(prefix + VerticalEdgeValueName, sd.VerticalEdge.ToString());
+                saveTo.Set(prefix + XOffsetValueName, sd.XOffset.ToString(CultureInfo.InvariantCulture));
+                saveTo.Set(prefix + YOffsetValueName, sd.YOffset.ToString(CultureInfo.InvariantCulture));
             }
 
-            saveTo.Set(prefix + leftValueName, so.Bounds.Left.ToString(CultureInfo.InvariantCulture));
-            saveTo.Set(prefix + topValueName, so.Bounds.Top.ToString(CultureInfo.InvariantCulture));
-            saveTo.Set(prefix + widthValueName, so.Bounds.Width.ToString(CultureInfo.InvariantCulture));
-            saveTo.Set(prefix + heightValueName, so.Bounds.Height.ToString(CultureInfo.InvariantCulture));
+            saveTo.Set(prefix + LeftValueName, so.Bounds.Left.ToString(CultureInfo.InvariantCulture));
+            saveTo.Set(prefix + TopValueName, so.Bounds.Top.ToString(CultureInfo.InvariantCulture));
+            saveTo.Set(prefix + WidthValueName, so.Bounds.Width.ToString(CultureInfo.InvariantCulture));
+            saveTo.Set(prefix + HeightValueName, so.Bounds.Height.ToString(CultureInfo.InvariantCulture));
         }
 
         private void LoadSnapObstacleData(ISimpleCollection<string, string> loadFrom, SnapObstacle so)
@@ -53,24 +54,24 @@ namespace Photo.Net.Tool.Snap
             string prefix = so.Name + ".";
             SnapDescription sd;
 
-            string isSnappedString = loadFrom.Get(prefix + isSnappedValueName);
+            string isSnappedString = loadFrom.Get(prefix + IsSnappedValueName);
             bool isSnapped = bool.Parse(isSnappedString);
 
             if (isSnapped)
             {
-                string snappedToString = loadFrom.Get(prefix + snappedToValueName);
+                string snappedToString = loadFrom.Get(prefix + SnappedToValueName);
                 SnapObstacle snappedTo = FindObstacle(snappedToString);
 
-                string horizontalEdgeString = loadFrom.Get(prefix + horizontalEdgeValueName);
-                HorizontalSnapEdge horizontalEdge = (HorizontalSnapEdge)Enum.Parse(typeof(HorizontalSnapEdge), horizontalEdgeString, true);
+                string horizontalEdgeString = loadFrom.Get(prefix + HorizontalEdgeValueName);
+                var horizontalEdge = (HorizontalSnapEdge)Enum.Parse(typeof(HorizontalSnapEdge), horizontalEdgeString, true);
 
-                string verticalEdgeString = loadFrom.Get(prefix + verticalEdgeValueName);
-                VerticalSnapEdge verticalEdge = (VerticalSnapEdge)Enum.Parse(typeof(VerticalSnapEdge), verticalEdgeString, true);
+                string verticalEdgeString = loadFrom.Get(prefix + VerticalEdgeValueName);
+                var verticalEdge = (VerticalSnapEdge)Enum.Parse(typeof(VerticalSnapEdge), verticalEdgeString, true);
 
-                string xOffsetString = loadFrom.Get(prefix + xOffsetValueName);
+                string xOffsetString = loadFrom.Get(prefix + XOffsetValueName);
                 int xOffset = int.Parse(xOffsetString, CultureInfo.InvariantCulture);
 
-                string yOffsetString = loadFrom.Get(prefix + yOffsetValueName);
+                string yOffsetString = loadFrom.Get(prefix + YOffsetValueName);
                 int yOffset = int.Parse(yOffsetString, CultureInfo.InvariantCulture);
 
                 sd = new SnapDescription(snappedTo, horizontalEdge, verticalEdge, xOffset, yOffset);
@@ -82,20 +83,20 @@ namespace Photo.Net.Tool.Snap
 
             this.obstacles[so] = sd;
 
-            string leftString = loadFrom.Get(prefix + leftValueName);
+            string leftString = loadFrom.Get(prefix + LeftValueName);
             int left = int.Parse(leftString, CultureInfo.InvariantCulture);
 
-            string topString = loadFrom.Get(prefix + topValueName);
+            string topString = loadFrom.Get(prefix + TopValueName);
             int top = int.Parse(topString, CultureInfo.InvariantCulture);
 
-            string widthString = loadFrom.Get(prefix + widthValueName);
+            string widthString = loadFrom.Get(prefix + WidthValueName);
             int width = int.Parse(widthString, CultureInfo.InvariantCulture);
 
-            string heightString = loadFrom.Get(prefix + heightValueName);
+            string heightString = loadFrom.Get(prefix + HeightValueName);
             int height = int.Parse(heightString, CultureInfo.InvariantCulture);
 
             Rectangle newBounds = new Rectangle(left, top, width, height);
-            so.RequestBoundsChange(newBounds);
+//            so.RequestBoundsChange(newBounds);
 
             if (sd != null)
             {
@@ -173,22 +174,22 @@ namespace Photo.Net.Tool.Snap
 
                 if (snapObstacle.StickyEdges)
                 {
-                    snapObstacle.BoundsChanging += SnapObstacle_BoundsChanging;
-                    snapObstacle.BoundsChanged += SnapObstacle_BoundsChanged;
+                    snapObstacle.PropertyChanging += SnapObstacle_BoundsChanging;
+                    snapObstacle.PropertyChanged += SnapObstacle_BoundsChanged;
                 }
             }
         }
 
-        private void SnapObstacle_BoundsChanging(object sender, EventArgs<Rectangle> e)
+        private void SnapObstacle_BoundsChanging(object sender, PropertyChangeArgs e)
         {
         }
 
-        private void SnapObstacle_BoundsChanged(object sender, EventArgs<Rectangle> e)
+        private void SnapObstacle_BoundsChanged(object sender, PropertyChangeArgs e)
         {
             var senderSO = (SnapObstacle)sender;
-            Rectangle fromRect = e.Data;
+//            Rectangle fromRect = e.Data;
             Rectangle toRect = senderSO.Bounds;
-            UpdateDependentObstacles(senderSO, fromRect, toRect);
+//            UpdateDependentObstacles(senderSO, fromRect, toRect);
         }
 
         private void UpdateDependentObstacles(SnapObstacle senderSO, Rectangle fromRect, Rectangle toRect)
@@ -233,7 +234,7 @@ namespace Photo.Net.Tool.Snap
                         Point newLocation2 = AdjustNewLocation(obstacle, newLocation1, sd);
                         Rectangle newBounds = new Rectangle(newLocation2, oldBounds.Size);
 
-                        obstacle.RequestBoundsChange(newBounds);
+//                        obstacle.RequestBoundsChange(newBounds);
 
                         // Recursively update anything snapped to this obstacle
                         UpdateDependentObstacles(obstacle, oldBounds, newBounds);
@@ -255,8 +256,8 @@ namespace Photo.Net.Tool.Snap
 
                 if (snapObstacle.StickyEdges)
                 {
-                    snapObstacle.BoundsChanging -= SnapObstacle_BoundsChanging;
-                    snapObstacle.BoundsChanged -= SnapObstacle_BoundsChanged;
+                    //                    snapObstacle.BoundsChanging -= SnapObstacle_BoundsChanging;
+                    //                    snapObstacle.BoundsChanged -= SnapObstacle_BoundsChanged;
                 }
             }
         }
@@ -436,7 +437,7 @@ namespace Photo.Net.Tool.Snap
             Point newLocation = avoider.Bounds.Location;
             Point adjustedLocation = AdjustNewLocation(avoider, newLocation, snapDescription);
             Rectangle newBounds = new Rectangle(adjustedLocation, avoider.Bounds.Size);
-            avoider.RequestBoundsChange(newBounds);
+//            avoider.RequestBoundsChange(newBounds);
         }
 
         private static Point AdjustNewLocation(SnapObstacle obstacle, Point newLocation, SnapDescription snapDescription)

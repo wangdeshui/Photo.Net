@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Drawing;
 using Photo.Net.Core.PixelOperation;
-using Photo.Net.Layer;
 using Photo.Net.Resource;
 using Photo.Net.Tool.Controls;
+using Photo.Net.Tool.Layer;
 
 namespace Photo.Net.Forms
 {

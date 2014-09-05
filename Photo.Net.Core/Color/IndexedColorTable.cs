@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 
@@ -11,76 +9,79 @@ namespace Photo.Net.Core.Color
     /// </summary>
     public class IndexedColorTable
     {
-        private readonly Dictionary<int, ColorBgra> _colors = new Dictionary<int, ColorBgra>(255);
+        private ColorPalette _colorPalette = GetColorPalette();
 
-        public ColorBgra this[int index]
+        public ColorPalette ColorPalette
         {
-            get { return _colors[index]; }
-            set
-            {
-                if (_colors.ContainsKey(index) || _colors.Count < 255)
-                {
-                    _colors[index] = value;
-                }
-                else if (_colors.Count >= 255)
-                {
-                    throw new IndexOutOfRangeException("Only store 255 indexed colors.");
-                }
-            }
+            get { return _colorPalette; }
+            set { _colorPalette = value; }
         }
 
-        public bool Add(int index, ColorBgra newColor)
+        public System.Drawing.Color this[int index]
         {
-            if (_colors.Count >= 255)
-            {
-                return false;
-            }
-
-            _colors.Add(index, newColor);
-            return true;
+            get { return _colorPalette.Entries[index]; }
+            set { _colorPalette.Entries[index] = value; }
         }
 
-        public bool Contain(ColorBgra color)
+        public bool Contain(System.Drawing.Color color)
         {
-            return _colors.Any(x => x.Value == color);
+            return _colorPalette.Entries.Any(x => x == color);
         }
 
         public static IndexedColorTable FromBitmap(Bitmap bmp)
         {
-            int index = 0;
-            var table = new IndexedColorTable();
-            unsafe
-            {
-                BitmapData bData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                try
-                {
-                    for (int y = 0; y < bData.Height; ++y)
-                    {
-                        byte* srcPtr = (byte*)bData.Scan0.ToPointer() + (y * bData.Stride);
-
-                        for (int x = 0; x < bData.Width; ++x)
-                        {
-                            byte b = *srcPtr;
-                            byte g = *(srcPtr + 1);
-                            byte r = *(srcPtr + 2);
-                            var color = ColorBgra.FromBgra(b, g, r, 255);
-
-                            if (!table.Contain(color))
-                            {
-                                table[index] = color;
-                                index++;
-                            }
-                        }
-                    }
-                }
-
-                finally
-                {
-                    bmp.UnlockBits(bData);
-                }
-            }
-
+            var table = new IndexedColorTable() { ColorPalette = bmp.Palette };
             return table;
+
+            //            int index = 0;
+            //            var table = new IndexedColorTable();
+            //            unsafe
+            //            {
+            //                BitmapData bData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+            //                try
+            //                {
+            //                    for (int y = 0; y < bData.Height; ++y)
+            //                    {
+            //                        byte* srcPtr = (byte*)bData.Scan0.ToPointer() + (y * bData.Stride);
+            //
+            //                        for (int x = 0; x < bData.Width; ++x)
+            //                        {
+            //                            byte b = *srcPtr;
+            //                            byte g = *(srcPtr + 1);
+            //                            byte r = *(srcPtr + 2);
+            //                            var color = System.Drawing.Color.FromArgb(255, r, g, b);
+            //
+            //                            if (!table.Contain(color))
+            //                            {
+            //                                table[index] = color;
+            //                                index++;
+            //                            }
+            //                        }
+            //                    }
+            //
+            //                    if (!table.Contain(System.Drawing.Color.Transparent) && index < 255)
+            //                        table[index] = System.Drawing.Color.Transparent;
+            //                }
+            //
+            //                finally
+            //                {
+            //                    bmp.UnlockBits(bData);
+            //                }
+            //            }
+        }
+
+        public static ColorPalette GetColorPalette(uint colorCount = 255)
+        {
+            var bitscolordepth = PixelFormat.Format1bppIndexed;
+            if (colorCount > 2)
+                bitscolordepth = PixelFormat.Format4bppIndexed;
+            if (colorCount > 16)
+                bitscolordepth = PixelFormat.Format8bppIndexed;
+
+            var bitmap = new Bitmap(1, 1, bitscolordepth);
+            ColorPalette palette = bitmap.Palette;
+            bitmap.Dispose();
+            return palette;
         }
     }
 }

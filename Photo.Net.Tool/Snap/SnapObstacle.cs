@@ -1,74 +1,40 @@
 ﻿using System;
 using System.Drawing;
+using System.Runtime.CompilerServices;
+using Photo.Net.Base;
 using Photo.Net.Base.Delegate;
 
 namespace Photo.Net.Tool.Snap
 {
-    public abstract class SnapObstacle
+    public abstract class SnapObstacle : PropertyChange
     {
         public const int DefaultSnapProximity = 15;
         public const int DefaultSnapDistance = 3;
 
-        private string name;
-        protected Rectangle previousBounds; // for BoundsChanged event
-        protected Rectangle bounds;
-        private SnapRegion snapRegion;
-        private bool stickyEdges;
-        private int snapProximity;
-        private int snapDistance;
-        private bool enabled;
-        private bool enableSave;
+        protected Rectangle _bounds;
+        private readonly SnapRegion _snapRegion;
+        private readonly bool _stickyEdges;
+        private readonly int _snapProximity;
+        private readonly int _snapDistance;
 
-        public string Name
-        {
-            get
-            {
-                return this.name;
-            }
-        }
-
-        /// <summary>
-        /// Gets the bounds of this snap obstacle, defined in coordinates relative to its container.
-        /// </summary>
-        public Rectangle Bounds
-        {
-            get
-            {
-                return this.bounds;
-            }
-        }
-
-        protected virtual void OnBoundsChangeRequested(Rectangle newBounds, ref bool handled)
-        {
-        }
-
-        public bool RequestBoundsChange(Rectangle newBounds)
-        {
-            bool handled = false;
-            OnBoundsChangeRequested(newBounds, ref handled);
-            return handled;
-        }
+        public string Name { get; private set; }
 
         public SnapRegion SnapRegion
         {
             get
             {
-                return this.snapRegion;
+                return this._snapRegion;
             }
         }
 
         /// <summary>
         /// Gets whether or not this obstacle has "sticky" edges.
         /// </summary>
-        /// <remarks>
-        /// If an obstacle has sticky edges, than any obstacle that is snapped on 
-        /// to it will move with this obstacle.
-        /// </remarks>
         public bool StickyEdges
         {
             get
             {
-                return this.stickyEdges;
+                return this._stickyEdges;
             }
         }
 
@@ -79,7 +45,7 @@ namespace Photo.Net.Tool.Snap
         {
             get
             {
-                return this.snapProximity;
+                return this._snapProximity;
             }
         }
 
@@ -90,65 +56,38 @@ namespace Photo.Net.Tool.Snap
         {
             get
             {
-                return this.snapDistance;
+                return this._snapDistance;
             }
         }
 
-        public bool Enabled
-        {
-            get
-            {
-                return this.enabled;
-            }
+        public bool Enabled { get; set; }
 
-            set
-            {
-                this.enabled = value;
-            }
-        }
+        public bool EnableSave { get; set; }
 
-        public bool EnableSave
-        {
-            get
-            {
-                return this.enableSave;
-            }
-
-            set
-            {
-                this.enableSave = value;
-            }
-        }
+        #region Bound
 
         /// <summary>
-        /// Raised before the Bounds is changed.
+        /// Gets the bounds of this snap obstacle, defined in coordinates relative to its container.
         /// </summary>
-        /// <remarks>
-        /// The Data property of the event args is the value that Bounds is being set to.
-        /// </remarks>
-        public event EventHandler<EventArgs<Rectangle>> BoundsChanging;
-        protected virtual void OnBoundsChanging()
+        public Rectangle Bounds
         {
-            if (BoundsChanging != null)
+            get { return this._bounds; }
+            set
             {
-                BoundsChanging(this, new EventArgs<Rectangle>(this.Bounds));
+                if (!RequestBoundsChange(value)) return;
+
+                OnPropertyChanging();
+                _bounds = value;
+                OnPropertyChanged();
             }
         }
 
-        /// <summary>
-        /// Raised after the Bounds is changed.
-        /// </summary>
-        /// <remarks>
-        /// The Data property of the event args is the value that Bounds was just changed from.
-        /// </remarks>
-        public event EventHandler<EventArgs<Rectangle>> BoundsChanged;
-        protected virtual void OnBoundsChanged()
+        protected virtual bool RequestBoundsChange(Rectangle newBounds)
         {
-            if (BoundsChanged != null)
-            {
-                BoundsChanged(this, new EventArgs<Rectangle>(this.previousBounds));
-            }
+            return true;
         }
+
+        #endregion
 
         internal SnapObstacle(string name, Rectangle bounds, SnapRegion snapRegion, bool stickyEdges)
             : this(name, bounds, snapRegion, stickyEdges, DefaultSnapProximity, DefaultSnapDistance)
@@ -157,15 +96,14 @@ namespace Photo.Net.Tool.Snap
 
         internal SnapObstacle(string name, Rectangle bounds, SnapRegion snapRegion, bool stickyEdges, int snapProximity, int snapDistance)
         {
-            this.name = name;
-            this.bounds = bounds;
-            this.previousBounds = bounds;
-            this.snapRegion = snapRegion;
-            this.stickyEdges = stickyEdges;
-            this.snapProximity = snapProximity;
-            this.snapDistance = snapDistance;
-            this.enabled = true;
-            this.enableSave = true;
+            this.Name = name;
+            this.Bounds = bounds;
+            this._snapRegion = snapRegion;
+            this._stickyEdges = stickyEdges;
+            this._snapProximity = snapProximity;
+            this._snapDistance = snapDistance;
+            this.Enabled = true;
+            this.EnableSave = true;
         }
     }
 }

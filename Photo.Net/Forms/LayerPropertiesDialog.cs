@@ -3,10 +3,10 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using Photo.Net.Core;
-using Photo.Net.Layer;
 using Photo.Net.Resource;
 using Photo.Net.Tool.Controls;
-using Photo.Net.Window;
+using Photo.Net.Tool.Layer;
+using Photo.Net.Tool.Window;
 
 namespace Photo.Net.Forms
 {

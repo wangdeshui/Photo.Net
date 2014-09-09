@@ -43,11 +43,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoxedConstants.cs" />
+    <Compile Include="Enums\MoveNubShape.cs" />
     <Compile Include="Event\DrawArgs.cs" />
     <Compile Include="Event\RenderArgs.cs" />
     <Compile Include="ImageMetadata.cs" />
     <Compile Include="Graphic\NullGraphics.cs" />
     <Compile Include="Graphic\PtnGraphics.cs" />
+    <Compile Include="Renders\CanvasControl.cs" />
+    <Compile Include="Renders\GradientRenderer.cs" />
+    <Compile Include="Renders\GradientRenderers.cs" />
+    <Compile Include="Renders\MoveNubRenderer.cs" />
     <Compile Include="Surfaces\SurfaceBox.cs">
       <SubType>Component</SubType>
     </Compile>

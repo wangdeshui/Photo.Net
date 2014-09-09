@@ -1,41 +1,33 @@
 ﻿using System.Windows.Forms;
-using Photo.Net.Tool.Documents;
-using Photo.Net.Tool.IO;
+using Photo.Net.Forms;
+using Photo.Net.Tool.Window;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace Photo.Net
 {
-    public partial class MainWindow : Form
+    public partial class MainWindow : BaseWindow
     {
-        private readonly DocumentWorkspace _workspace;
+
+        private DockPanel _dockPanel;
+        private readonly MainPanel _pane2 = new MainPanel();
 
         public MainWindow()
         {
-            CheckForIllegalCrossThreadCalls = false;
+            AllowDrop = true;
             InitializeComponent();
 
-            var dialog = new OpenFileDialog { CheckFileExists = true, CheckPathExists = true, FilterIndex = 0 };
+            //            Controls.Add(_panel);
+            //            Controls.Add(_pane2);
+            //            _panel.Show(this);
+            //            _pane2.Show(this);
+            this.BringToFront();
 
-            dialog.ShowDialog();
+            _dockPanel = new DockPanel() { Dock = DockStyle.Fill, DocumentStyle = DocumentStyle.DockingWindow };
+            Controls.Add(_dockPanel);
 
-            var fileName = dialog.FileName;
-            FileType type;
-            var document = DocumentWorkspace.LoadDocument(this, fileName, out type, null);
-
-            _workspace = new DocumentWorkspace
-            {
-                Document = document,
-                Dock = DockStyle.Fill
-            };
-
-            Controls.Add(_workspace);
-
-            _workspace.MouseWheel += _workspace_MouseWheel;
+            new ToolSet().Show(_dockPanel);
+            _pane2.Show(_dockPanel);
         }
 
-        void _workspace_MouseWheel(object sender, MouseEventArgs e)
-        {
-
-            _workspace.PerformMouseWheel((Control)sender, e);
-        }
     }
 }

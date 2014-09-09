@@ -12,6 +12,7 @@ using Photo.Net.Base.IO;
 using Photo.Net.Core;
 using Photo.Net.Resource;
 using Photo.Net.Tool.IO;
+using Photo.Net.Tool.Layer;
 using Photo.Net.Tool.Thumbnail;
 
 namespace Photo.Net.Tool.Documents
@@ -24,12 +25,29 @@ namespace Photo.Net.Tool.Documents
           IHistoryWorkspace,
           IThumbnailProvider
     {
+
+        #region Propertys
+
+
+        public int ActiveLayerIndex { get; set; }
+
+        public ImageLayer ActiveLayer { get; set; }
+
+        public AppWorkspace AppWorkspace { get; private set; }
+
+        #endregion
+
         public DocumentWorkspace()
         {
             base.InitLayout();
         }
 
-        public int ActiveLayerIndex { get; private set; }
+        public DocumentWorkspace(AppWorkspace appWorkspace)
+            : this()
+        {
+            AppWorkspace = appWorkspace;
+        }
+
         public Surface RenderThumbnail(int maxEdgeLength)
         {
             throw new NotImplementedException();
@@ -249,6 +267,11 @@ namespace Photo.Net.Tool.Documents
             }
 
             base.HandleMouseWheel(sender, e);
+        }
+
+
+        private static void InitializeTools()
+        {
         }
     }
 }

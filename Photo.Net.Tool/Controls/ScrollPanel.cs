@@ -5,7 +5,6 @@ using Photo.Net.Base.NativeWrapper;
 
 namespace Photo.Net.Tool.Controls
 {
-    // TODO: remove? <-- depends on rewriting LayerControl and DocumentView so that it doesn't use a Panel, and that is post-3.0 stuff
     /// <summary>
     /// This is the same as System.Windows.Forms.Panel except for three things:
     /// 1. It exposes a Scroll event.

@@ -43,13 +43,27 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="WeifenLuo.WinFormsUI.Docking">
+      <HintPath>..\Reference\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Forms\BitmapLayerPropertiesDialog.cs">
+    <Compile Include="Forms\BitmapLayerPropertiesDialog.cs" />
+    <Compile Include="Forms\ColorsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\LayerPropertiesDialog.cs">
+    <Compile Include="Forms\ColorsWindow.Designer.cs">
+      <DependentUpon>ColorsWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\LayerPropertiesDialog.cs" />
+    <Compile Include="Forms\MainPanel.cs">
       <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ToolSet.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ToolSet.Designer.cs">
+      <DependentUpon>ToolSet.cs</DependentUpon>
     </Compile>
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>
@@ -59,6 +73,12 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Forms\ColorsWindow.resx">
+      <DependentUpon>ColorsWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\ToolSet.resx">
+      <DependentUpon>ToolSet.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>

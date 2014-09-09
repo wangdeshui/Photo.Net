@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using Photo.Net.Core.Geometry;
 
-namespace Photo.Net.Tool.Tools
+namespace Photo.Net.Tool.Window
 {
     public sealed class ControlShadow
         : Control

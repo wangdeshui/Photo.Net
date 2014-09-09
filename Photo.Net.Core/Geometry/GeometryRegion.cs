@@ -1,7 +1,11 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using Photo.Net.Base;
+using Photo.Net.Base.Native;
 
 namespace Photo.Net.Core.Geometry
 {
@@ -22,7 +26,7 @@ namespace Photo.Net.Core.Geometry
         private int _cachedArea = -1;
         private Rectangle _cachedBounds = Rectangle.Empty;
         private RectangleF[] _cachedRectsF;
-        private readonly Rectangle[] _cachedRects;
+        private Rectangle[] _cachedRects;
 
         public object SyncRoot
         {
@@ -430,11 +434,113 @@ namespace Photo.Net.Core.Geometry
             }
         }
 
-        private unsafe void UpdateCachedRegionScans()
+        private void UpdateCachedRegionScans()
         {
             // Assumes we are in a lock(SyncRoot){} block
-            //            PtnGraphics.GetRegionScans(this._gdiRegion, out _cachedRects, out _cachedArea);
+            GetRegionScans(this._gdiRegion, out _cachedRects, out _cachedArea);
             this._cachedRectsF = null; // only update this when specifically asked for it
+        }
+
+
+        public static void GetRegionScans(Region region, out Rectangle[] scans, out int area)
+        {
+            var nullHdc = SafeNativeMethods.CreateCompatibleDC(IntPtr.Zero);
+            var nullGc = Graphics.FromHdc(nullHdc);
+            IntPtr hRgn = IntPtr.Zero;
+
+            try
+            {
+                hRgn = region.GetHrgn(nullGc);
+                GetRegionScans(hRgn, out scans, out area);
+            }
+
+            finally
+            {
+                if (hRgn != IntPtr.Zero)
+                {
+                    SafeNativeMethods.DeleteObject(hRgn);
+                    hRgn = IntPtr.Zero;
+                }
+            }
+
+            GC.KeepAlive(region);
+        }
+        private const int ScrewUpMax = 100;
+        internal unsafe static void GetRegionScans(IntPtr hRgn, out Rectangle[] scans, out int area)
+        {
+            uint bytes = 0;
+            int countdown = ScrewUpMax;
+            int error = 0;
+
+            // HACK: It seems that sometimes the GetRegionData will return ERROR_INVALID_HANDLE
+            //       even though the handle (the HRGN) is fine. Maybe the function is not
+            //       re-entrant? I'm not sure, but trying it again seems to fix it.
+            while (countdown > 0)
+            {
+                bytes = SafeNativeMethods.GetRegionData(hRgn, 0, (NativeStructs.RGNDATA*)IntPtr.Zero);
+                error = Marshal.GetLastWin32Error();
+
+                if (bytes == 0)
+                {
+                    --countdown;
+                    System.Threading.Thread.Sleep(5);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            // But if we retry several times and it still messes up then we will finally give up.
+            if (bytes == 0)
+            {
+                throw new Win32Exception(error, "GetRegionData returned " + bytes.ToString() + ", GetLastError() = " + error.ToString());
+            }
+
+            byte* data;
+
+            // Up to 512 bytes, allocate on the stack. Otherwise allocate from the heap.
+            if (bytes <= 512)
+            {
+                byte* data1 = stackalloc byte[(int)bytes];
+                data = data1;
+            }
+            else
+            {
+                data = (byte*)Memory.Allocate(bytes).ToPointer();
+            }
+
+            try
+            {
+                var pRgnData = (NativeStructs.RGNDATA*)data;
+                uint result = SafeNativeMethods.GetRegionData(hRgn, bytes, pRgnData);
+
+                if (result != bytes)
+                {
+                    throw new OutOfMemoryException("SafeNativeMethods.GetRegionData returned 0");
+                }
+
+                NativeStructs.RECT* pRects = NativeStructs.RGNDATA.GetRectsPointer(pRgnData);
+                scans = new Rectangle[pRgnData->rdh.nCount];
+                area = 0;
+
+                for (int i = 0; i < scans.Length; ++i)
+                {
+                    scans[i] = Rectangle.FromLTRB(pRects[i].left, pRects[i].top, pRects[i].right, pRects[i].bottom);
+                    area += scans[i].Width * scans[i].Height;
+                }
+
+                pRects = null;
+                pRgnData = null;
+            }
+
+            finally
+            {
+                if (bytes > 512)
+                {
+                    Memory.Free(new IntPtr(data));
+                }
+            }
         }
 
         public void Intersect(GraphicsPath path)

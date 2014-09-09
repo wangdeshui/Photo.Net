@@ -48,12 +48,14 @@
     <Compile Include="Delegate\Do.cs" />
     <Compile Include="Delegate\EventArgs.cs" />
     <Compile Include="Delegate\Function.cs" />
+    <Compile Include="Delegate\HandledEventHandler.cs" />
     <Compile Include="Delegate\IDisposedEvent.cs" />
     <Compile Include="Delegate\IOEventArgs.cs" />
     <Compile Include="Delegate\IOEventHandler.cs" />
     <Compile Include="Delegate\Procedure.cs" />
     <Compile Include="Delegate\ProgressEventArgs.cs" />
     <Compile Include="Delegate\ProgressEventHandler.cs" />
+    <Compile Include="ICloneable.cs" />
     <Compile Include="PropertyChange.cs" />
     <Compile Include="Enums\ExifTagID.cs" />
     <Compile Include="Enums\ExifTagType.cs" />

@@ -9,8 +9,9 @@ using Photo.Net.Base;
 using Photo.Net.Base.Delegate;
 using Photo.Net.Core;
 using Photo.Net.Resource;
+using Photo.Net.Tool.Core;
 using Photo.Net.Tool.Events;
-using Photo.Net.Tool.Snap;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace Photo.Net.Tool.Window
 {
@@ -20,8 +21,7 @@ namespace Photo.Net.Tool.Window
     /// We derive from this class instead of Windows.Forms.Form directly.
     /// </summary>
     public class BaseWindow
-        : Form,
-          ISnapManagerHost
+        : DockContent
     {
         static BaseWindow()
         {
@@ -97,7 +97,6 @@ namespace Photo.Net.Tool.Window
         private bool isShown = false;
         private bool enableOpacity = true;
         private double ourOpacity = 1.0; // store opacity setting so that when we go from disabled->enabled opacity we can set the correct value
-        private SnapManager snapManager = null;
         private System.ComponentModel.IContainer components;
         private bool instanceEnableOpacity = true;
         private static bool globalEnableOpacity = true;
@@ -589,24 +588,24 @@ namespace Photo.Net.Tool.Window
             if (!this.DesignMode)
             {
                 string stringName = this.Name + ".Localized";
-                string stringValue = StringsResourceManager.GetString(stringName);
-
-                if (stringValue != null)
-                {
-                    try
-                    {
-                        bool boolValue = bool.Parse(stringValue);
-
-                        if (boolValue)
-                        {
-                            //                            LoadLocalizedResources();
-                        }
-                    }
-
-                    catch (Exception)
-                    {
-                    }
-                }
+                //                string stringValue = StringsResourceManager.GetString(stringName);
+                //
+                //                if (stringValue != null)
+                //                {
+                //                    try
+                //                    {
+                //                        bool boolValue = bool.Parse(stringValue);
+                //
+                //                        if (boolValue)
+                //                        {
+                //                            //                            LoadLocalizedResources();
+                //                        }
+                //                    }
+                //
+                //                    catch (Exception)
+                //                    {
+                //                    }
+                //                }
             }
         }
 
@@ -920,19 +919,6 @@ namespace Photo.Net.Tool.Window
                 default:
                     base.WndProc(ref m);
                     break;
-            }
-        }
-
-        public SnapManager SnapManager
-        {
-            get
-            {
-                if (this.snapManager == null)
-                {
-                    this.snapManager = new SnapManager();
-                }
-
-                return snapManager;
             }
         }
 

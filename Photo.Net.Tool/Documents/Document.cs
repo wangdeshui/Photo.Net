@@ -38,6 +38,8 @@ namespace Photo.Net.Tool.Documents
           IDisposable,
           ICloneable
     {
+        #region Fields
+
         private readonly ImageLayerList _layers;
         private readonly int _width;
         private readonly int _height;
@@ -47,9 +49,8 @@ namespace Photo.Net.Tool.Documents
         private ThreadPool _threadPool = new ThreadPool();
 
         [NonSerialized]
-        private InvalidateEventHandler layerInvalidatedDelegate;
+        private InvalidateEventHandler _layerInvalidatedDelegate;
 
-        // TODO: the document class should not manage its own update region, its owner should
         [NonSerialized]
         private Vector<Rectangle> _updateRegion;
 
@@ -58,69 +59,9 @@ namespace Photo.Net.Tool.Documents
 
         private Version _savedWith;
 
-        [NonSerialized]
-        private DocumentMetadata _metadata = null;
+        #endregion
 
-        [NonSerialized]
-        private XmlDocument _headerXml;
-
-        private const string HeaderXmlSkeleton = "<ptnImage><custom></custom></ptnImage>";
-
-        private XmlDocument HeaderXml
-        {
-            get
-            {
-                if (this.disposed)
-                {
-                    throw new ObjectDisposedException("Document");
-                }
-
-                if (this._headerXml == null)
-                {
-                    this._headerXml = new XmlDocument();
-                    this._headerXml.LoadXml(HeaderXmlSkeleton);
-                }
-
-                return this._headerXml;
-            }
-        }
-
-        public string Header
-        {
-            get
-            {
-                if (this.disposed)
-                {
-                    throw new ObjectDisposedException("Document");
-                }
-
-                return this.HeaderXml.OuterXml;
-            }
-        }
-
-        public string CustomHeaders
-        {
-            get
-            {
-                if (this.disposed)
-                {
-                    throw new ObjectDisposedException("Document");
-                }
-
-                return this.HeaderXml.SelectSingleNode("/ptnImage/custom").InnerXml;
-            }
-
-            set
-            {
-                if (this.disposed)
-                {
-                    throw new ObjectDisposedException("Document");
-                }
-
-                this.HeaderXml.SelectSingleNode("/ptnImage/custom").InnerXml = value;
-                Dirty = true;
-            }
-        }
+        #region Unit
 
         /// <summary>
         /// Gets or sets the units that are used for measuring the document's physical (printed) size.
@@ -188,10 +129,7 @@ namespace Photo.Net.Tool.Documents
 
         public static MeasurementUnit DefaultDpuUnit
         {
-            get
-            {
-                return MeasurementUnit.Inch;
-            }
+            get { return MeasurementUnit.Inch; }
         }
 
 
@@ -202,14 +140,26 @@ namespace Photo.Net.Tool.Documents
 
         public static double DefaultDpcm
         {
-            get
-            {
-                return defaultDpcm;
-            }
+            get { return defaultDpcm; }
         }
 
         public const double MinimumDpu = 0.01;
         public const double MaximumDpu = 32767.0;
+
+        #endregion
+
+        #region Measure
+
+        /// <summary>
+        /// Ensures that the document's DpuX, DpuY, and DpuUnits properties are set.
+        /// If they are not already set, they are initialized to their default values (96, 96 , inches).
+        /// </summary>
+        private void InitializeDpu()
+        {
+            this.DpuUnit = this.DpuUnit;
+            this.DpuX = this.DpuX;
+            this.DpuY = this.DpuY;
+        }
 
         public static double InchesToCentimeters(double inches)
         {
@@ -254,17 +204,6 @@ namespace Photo.Net.Tool.Documents
             }
 
             return dpu;
-        }
-
-        /// <summary>
-        /// Ensures that the document's DpuX, DpuY, and DpuUnits properties are set.
-        /// If they are not already set, they are initialized to their default values (96, 96 , inches).
-        /// </summary>
-        private void InitializeDpu()
-        {
-            this.DpuUnit = this.DpuUnit;
-            this.DpuX = this.DpuX;
-            this.DpuY = this.DpuY;
         }
 
         private byte[] GetDoubleAsRationalExifData(double value)
@@ -345,7 +284,8 @@ namespace Photo.Net.Tool.Documents
 
                 if (this.DpuUnit == MeasurementUnit.Pixel && value != 1.0)
                 {
-                    throw new ArgumentOutOfRangeException("value", value, "if DpuUnit == Pixel, then value must equal 1.0");
+                    throw new ArgumentOutOfRangeException("value", value,
+                        "if DpuUnit == Pixel, then value must equal 1.0");
                 }
 
                 byte[] data = GetDoubleAsRationalExifData(value);
@@ -415,7 +355,8 @@ namespace Photo.Net.Tool.Documents
 
                 if (this.DpuUnit == MeasurementUnit.Pixel && value != 1.0)
                 {
-                    throw new ArgumentOutOfRangeException("value", value, "if DpuUnit == Pixel, then value must equal 1.0");
+                    throw new ArgumentOutOfRangeException("value", value,
+                        "if DpuUnit == Pixel, then value must equal 1.0");
                 }
 
                 byte[] data = GetDoubleAsRationalExifData(value);
@@ -431,10 +372,7 @@ namespace Photo.Net.Tool.Documents
         /// </summary>
         public double PhysicalWidth
         {
-            get
-            {
-                return (double)this.Width / (double)this.DpuX;
-            }
+            get { return (double)this.Width / (double)this.DpuX; }
         }
 
         /// <summary>
@@ -442,30 +380,11 @@ namespace Photo.Net.Tool.Documents
         /// </summary>
         public double PhysicalHeight
         {
-            get
-            {
-                return (double)this.Height / (double)this.DpuY;
-            }
+            get { return (double)this.Height / (double)this.DpuY; }
         }
 
-        // 
-        //   Conversion Matrix:
-        //
-        // GetPhysical[X|Y](x, unit), where dpu = this.dpuX or dpuY
-        //
-        //            dpu |  px  |  in  |  cm        |
-        //        unit    |      |      |            |
-        //   -------------+------+------+------------+
-        //        px      |  x   |  x   |      x     |
-        //   -------------+------+------+------------+
-        //        in      | x /  | x /  | x /        | 
-        //                |  96  | dpuX | (dpuX*2.54)| 
-        //   -------------+------+------+------------+
-        //        cm      | x /  |x*2.54| x / dpuX   |
-        //                |  37.8| /dpuX|            |
-        //   -------------+------+------+------------+
-
-        public static double PixelToPhysical(double pixel, MeasurementUnit resultUnit, MeasurementUnit dpuUnit, double dpu)
+        public static double PixelToPhysical(double pixel, MeasurementUnit resultUnit, MeasurementUnit dpuUnit,
+            double dpu)
         {
             double result;
 
@@ -604,7 +523,8 @@ namespace Photo.Net.Tool.Documents
 
             if (basisDpuUnits == MeasurementUnit.Pixel && basisDpu != 1.0)
             {
-                throw new ArgumentOutOfRangeException("basisDpuUnits, basisDpu", "if basisDpuUnits is Pixel, then basisDpu must equal 1.0");
+                throw new ArgumentOutOfRangeException("basisDpuUnits, basisDpu",
+                    "if basisDpuUnits is Pixel, then basisDpu must equal 1.0");
             }
 
             // Case 1. No conversion is necessary if they want the same units out.
@@ -735,7 +655,8 @@ namespace Photo.Net.Tool.Documents
             return null;
         }
 
-        public void CoordinatesToStrings(MeasurementUnit units, int x, int y, out string xString, out string yString, out string unitsString)
+        public void CoordinatesToStrings(MeasurementUnit units, int x, int y, out string xString, out string yString,
+            out string unitsString)
         {
             string unitsAbbreviation = GetUnitsAbbreviation(units);
 
@@ -756,28 +677,15 @@ namespace Photo.Net.Tool.Documents
             }
         }
 
-        /// <summary>
-        /// This is provided for future use.
-        /// If you want to add new stuff that must be serialized, create a new class,
-        /// then point 'tag' to a new instance of this class that is initialized
-        /// during construction. Make sure the new class has a 'tag' variable as well.
-        /// We effectively set up a 'linked list' where new versions of the code
-        /// can open old versions of the document, as .NET serialization is fickle in
-        /// certain areas. You might also add a new property to simplify using 
-        /// this stuff...
-        ///    public DocumentVersion2Data DocV2Data { get { return (DocumentVersion2Data)tag; } }
-        /// </summary>
-        // In practice, this has never been used, and .NET 2.0+ has better facilities for adding
-        // new data to a serialization schema. Therefore, marking as obsolete.
-        [Obsolete]
-        private object tag = null;
+        #endregion
+
+        #region Propertys
 
         /// <summary>
-        /// Reports the version of Paint.NET that this file was saved with.
-        /// This is reset when SaveToStream is used. This can be used to
-        /// determine file format compatibility if necessary.
+        /// Exposes a collection for access to the layers, and for manipulation of
+        /// the way the document contains the layers (add/remove/move).
         /// </summary>
-        public Version SavedWithVersion
+        public ImageLayerList Layers
         {
             get
             {
@@ -786,24 +694,38 @@ namespace Photo.Net.Tool.Documents
                     throw new ObjectDisposedException("Document");
                 }
 
-                if (_savedWith == null)
-                {
-                    _savedWith = PtnInfo.GetVersion();
-                }
-
-                return _savedWith;
+                return _layers;
             }
         }
 
-        [field: NonSerialized]
-        public event EventHandler DirtyChanged;
-
-        private void OnDirtyChanged()
+        /// <summary>
+        /// Width of the document, in pixels. All contained layers must be this wide as well.
+        /// </summary>
+        public int Width
         {
-            if (DirtyChanged != null)
-            {
-                DirtyChanged(this, EventArgs.Empty);
-            }
+            get { return _width; }
+        }
+
+        /// <summary>
+        /// Height of the document, in pixels. All contained layers must be this tall as well.
+        /// </summary>
+        public int Height
+        {
+            get { return _height; }
+        }
+
+        /// <summary>
+        /// The size of the document, in pixels. This is a convenience property that wraps up
+        /// the Width and Height properties in one Size structure.
+        /// </summary>
+        public Size Size
+        {
+            get { return new Size(Width, Height); }
+        }
+
+        public Rectangle Bounds
+        {
+            get { return new Rectangle(0, 0, Width, Height); }
         }
 
         /// <summary>
@@ -839,62 +761,14 @@ namespace Photo.Net.Tool.Documents
             }
         }
 
-        /// <summary>
-        /// Exposes a collection for access to the layers, and for manipulation of
-        /// the way the document contains the layers (add/remove/move).
-        /// </summary>
-        public ImageLayerList Layers
-        {
-            get
-            {
-                if (disposed)
-                {
-                    throw new ObjectDisposedException("Document");
-                }
+        [field: NonSerialized]
+        public event EventHandler DirtyChanged;
 
-                return _layers;
-            }
-        }
-
-        /// <summary>
-        /// Width of the document, in pixels. All contained layers must be this wide as well.
-        /// </summary>
-        public int Width
+        private void OnDirtyChanged()
         {
-            get
+            if (DirtyChanged != null)
             {
-                return _width;
-            }
-        }
-
-        /// <summary>
-        /// Height of the document, in pixels. All contained layers must be this tall as well.
-        /// </summary>
-        public int Height
-        {
-            get
-            {
-                return _height;
-            }
-        }
-
-        /// <summary>
-        /// The size of the document, in pixels. This is a convenience property that wraps up
-        /// the Width and Height properties in one Size structure.
-        /// </summary>
-        public Size Size
-        {
-            get
-            {
-                return new Size(Width, Height);
-            }
-        }
-
-        public Rectangle Bounds
-        {
-            get
-            {
-                return new Rectangle(0, 0, Width, Height);
+                DirtyChanged(this, EventArgs.Empty);
             }
         }
 
@@ -911,6 +785,13 @@ namespace Photo.Net.Tool.Documents
             }
         }
 
+        #endregion
+
+        #region Metadata
+
+        [NonSerialized]
+        private DocumentMetadata _metadata;
+
         public void ReplaceMetaDataFrom(Document other)
         {
             this.Metadata.ReplaceWithDataFrom(other.Metadata);
@@ -921,20 +802,9 @@ namespace Photo.Net.Tool.Documents
             this.Metadata.Clear();
         }
 
-        [Obsolete("don't use this property; implementors should expose type-safe properties instead", false)]
-        // Note, we can not remove this property because then the compiler complains that 'tag' is unused.
-        public object Tag
-        {
-            get
-            {
-                return this.tag;
-            }
+        #endregion
 
-            set
-            {
-                this.tag = value;
-            }
-        }
+        #region Render
 
         /// <summary>
         /// Clears a portion of a surface to transparent.
@@ -1076,29 +946,6 @@ namespace Photo.Net.Tool.Documents
             }
         }
 
-        private sealed class UpdateScansContext
-        {
-            private Document document;
-            private RenderArgs dst;
-            private Rectangle[] scans;
-            private int startIndex;
-            private int length;
-
-            public void UpdateScans(object context)
-            {
-                document.Render(dst, scans, startIndex, length, true);
-            }
-
-            public UpdateScansContext(Document document, RenderArgs dst, Rectangle[] scans, int startIndex, int length)
-            {
-                this.document = document;
-                this.dst = dst;
-                this.scans = scans;
-                this.startIndex = startIndex;
-                this.length = length;
-            }
-        }
-
         /// <summary>
         /// Renders only the portions of the document that have changed (been Invalidated) since 
         /// the last call to this function.
@@ -1163,6 +1010,10 @@ namespace Photo.Net.Tool.Documents
             return true;
         }
 
+        #endregion
+
+        #region Instance
+
         /// <summary>
         /// Constructs a blank document (zero layers) of the given width and height.
         /// </summary>
@@ -1185,34 +1036,10 @@ namespace Photo.Net.Tool.Documents
         {
         }
 
-        /// <summary>
-        /// Sets up event handling for contained objects.
-        /// </summary>
-        private void SetupEvents()
-        {
-            _layers.Changed += new EventHandler(LayerListChangedHandler);
-            _layers.Changing += new EventHandler(LayerListChangingHandler);
-            layerInvalidatedDelegate = new InvalidateEventHandler(LayerInvalidatedHandler);
+        #endregion
 
-            foreach (ImageLayer layer in _layers)
-            {
-                layer.Invalidated += layerInvalidatedDelegate;
-            }
-        }
 
-        /// <summary>
-        /// Called after deserialization occurs so that certain things that are non-serializable
-        /// can be set up.
-        /// </summary>
-        /// <param name="sender"></param>
-        public void OnDeserialization(object sender)
-        {
-            this._updateRegion = new Vector<Rectangle>();
-            this._updateRegion.Add(this.Bounds);
-            this._threadPool = new ThreadPool();
-            SetupEvents();
-            Dirty = true;
-        }
+        #region Invalidate
 
         [field: NonSerialized]
         public event InvalidateEventHandler Invalidated;
@@ -1243,7 +1070,7 @@ namespace Photo.Net.Tool.Documents
 
             foreach (ImageLayer layer in Layers)
             {
-                layer.Invalidated -= layerInvalidatedDelegate;
+                layer.Invalidated -= _layerInvalidatedDelegate;
             }
         }
 
@@ -1256,7 +1083,7 @@ namespace Photo.Net.Tool.Documents
         {
             foreach (ImageLayer layer in Layers)
             {
-                layer.Invalidated += layerInvalidatedDelegate;
+                layer.Invalidated += _layerInvalidatedDelegate;
             }
 
             Invalidate();
@@ -1350,6 +1177,10 @@ namespace Photo.Net.Tool.Documents
             _updateRegion.Clear();
         }
 
+        #endregion
+
+        #region Load document
+
         /// <summary>
         /// Creates a document that consists of one BitmapLayer.
         /// </summary>
@@ -1372,7 +1203,8 @@ namespace Photo.Net.Tool.Documents
             {
                 unsafe
                 {
-                    BitmapData bData = asBitmap.LockBits(new Rectangle(0, 0, asBitmap.Width, asBitmap.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                    BitmapData bData = asBitmap.LockBits(new Rectangle(0, 0, asBitmap.Width, asBitmap.Height),
+                        ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
 
                     try
                     {
@@ -1400,7 +1232,8 @@ namespace Photo.Net.Tool.Documents
             {
                 unsafe
                 {
-                    BitmapData bData = asBitmap.LockBits(new Rectangle(0, 0, asBitmap.Width, asBitmap.Height), ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+                    BitmapData bData = asBitmap.LockBits(new Rectangle(0, 0, asBitmap.Width, asBitmap.Height),
+                        ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
                     try
                     {
                         for (int y = 0; y < bData.Height; ++y)
@@ -1476,10 +1309,7 @@ namespace Photo.Net.Tool.Documents
 
         public static byte[] MagicBytes
         {
-            get
-            {
-                return Encoding.UTF8.GetBytes("PDN3");
-            }
+            get { return Encoding.UTF8.GetBytes("PDN3"); }
         }
 
         /// <summary>
@@ -1588,8 +1418,8 @@ namespace Photo.Net.Tool.Documents
             var formatter = new BinaryFormatter();
             var sfb = new SerializationFallbackBinder();
 
-            sfb.AddAssembly(Assembly.GetExecutingAssembly());     // first try PaintDotNet.Data.dll
-            sfb.AddAssembly(typeof(Utility).Assembly);            // second, try PaintDotNet.Core.dll
+            sfb.AddAssembly(Assembly.GetExecutingAssembly()); // first try PaintDotNet.Data.dll
+            sfb.AddAssembly(typeof(Utility).Assembly); // second, try PaintDotNet.Core.dll
             sfb.AddAssembly(typeof(Memory).Assembly); // third, try PaintDotNet.SystemLayer.dll
             formatter.Binder = sfb;
 
@@ -1617,6 +1447,98 @@ namespace Photo.Net.Tool.Documents
             document.Invalidate();
             return document;
         }
+
+        /// <summary>
+        /// Called after deserialization occurs so that certain things that are non-serializable
+        /// can be set up.
+        /// </summary>
+        public void OnDeserialization(object sender)
+        {
+            this._updateRegion = new Vector<Rectangle>();
+            this._updateRegion.Add(this.Bounds);
+            this._threadPool = new ThreadPool();
+            SetupEvents();
+            Dirty = true;
+        }
+
+        #endregion
+
+        #region Xml
+
+        [NonSerialized]
+        private XmlDocument _headerXml;
+
+        private const string HeaderXmlSkeleton = "<ptnImage><custom></custom></ptnImage>";
+
+        private XmlDocument HeaderXml
+        {
+            get
+            {
+                if (this.disposed)
+                {
+                    throw new ObjectDisposedException("Document");
+                }
+
+                if (this._headerXml == null)
+                {
+                    this._headerXml = new XmlDocument();
+                    this._headerXml.LoadXml(HeaderXmlSkeleton);
+                }
+
+                return this._headerXml;
+            }
+        }
+
+        public string Header
+        {
+            get
+            {
+                if (this.disposed)
+                {
+                    throw new ObjectDisposedException("Document");
+                }
+
+                return this.HeaderXml.OuterXml;
+            }
+        }
+
+        public string CustomHeaders
+        {
+            get
+            {
+                if (this.disposed)
+                {
+                    throw new ObjectDisposedException("Document");
+                }
+
+                return this.HeaderXml.SelectSingleNode("/ptnImage/custom").InnerXml;
+            }
+
+            set
+            {
+                if (this.disposed)
+                {
+                    throw new ObjectDisposedException("Document");
+                }
+
+                this.HeaderXml.SelectSingleNode("/ptnImage/custom").InnerXml = value;
+                Dirty = true;
+            }
+        }
+
+        private void PrepareHeader()
+        {
+            XmlDocument xd = this.HeaderXml;
+            XmlElement pdnImage = (XmlElement)xd.SelectSingleNode("/pdnImage");
+            pdnImage.SetAttribute("width", this.Width.ToString());
+            pdnImage.SetAttribute("height", this.Height.ToString());
+            pdnImage.SetAttribute("layers", this.Layers.Count.ToString());
+            pdnImage.SetAttribute("savedWithVersion", this.SavedWithVersion.ToString(4));
+        }
+
+        #endregion
+
+        #region Save
 
         /// <summary>
         /// Saves the Document to the given Stream with only the default headers and no
@@ -1649,7 +1571,7 @@ namespace Photo.Net.Tool.Documents
             string headerText = this.HeaderXml.OuterXml;
 
             // Write the header
-            byte[] magicBytes = Document.MagicBytes;
+            byte[] magicBytes = MagicBytes;
             stream.Write(magicBytes, 0, magicBytes.Length);
             byte[] headerBytes = Encoding.UTF8.GetBytes(headerText);
             stream.WriteByte((byte)(headerBytes.Length & 0xff));
@@ -1674,6 +1596,29 @@ namespace Photo.Net.Tool.Documents
             deferred.FinishSerialization(siphonStream);
 
             stream.Flush();
+        }
+
+        /// <summary>
+        /// Reports the version of Paint.NET that this file was saved with.
+        /// This is reset when SaveToStream is used. This can be used to
+        /// determine file format compatibility if necessary.
+        /// </summary>
+        public Version SavedWithVersion
+        {
+            get
+            {
+                if (disposed)
+                {
+                    throw new ObjectDisposedException("Document");
+                }
+
+                if (_savedWith == null)
+                {
+                    _savedWith = PtnInfo.GetVersion();
+                }
+
+                return _savedWith;
+            }
         }
 
         private class SaveProgressRelay
@@ -1713,15 +1658,9 @@ namespace Photo.Net.Tool.Documents
             }
         }
 
-        private void PrepareHeader()
-        {
-            XmlDocument xd = this.HeaderXml;
-            XmlElement pdnImage = (XmlElement)xd.SelectSingleNode("/pdnImage");
-            pdnImage.SetAttribute("width", this.Width.ToString());
-            pdnImage.SetAttribute("height", this.Height.ToString());
-            pdnImage.SetAttribute("layers", this.Layers.Count.ToString());
-            pdnImage.SetAttribute("savedWithVersion", this.SavedWithVersion.ToString(4));
-        }
+        #endregion
+
+        #region Flatten document
 
         public void Flatten(Surface dst)
         {
@@ -1732,7 +1671,7 @@ namespace Photo.Net.Tool.Documents
 
             dst.Clear(ColorBgra.White.NewAlpha(0));
 
-            using (RenderArgs renderArgs = new RenderArgs(dst))
+            using (var renderArgs = new RenderArgs(dst))
             {
                 Render(renderArgs, true);
             }
@@ -1753,6 +1692,10 @@ namespace Photo.Net.Tool.Documents
             return newDocument;
         }
 
+        #endregion
+
+        #region Dispose
+
         ~Document()
         {
             Dispose(false);
@@ -1765,6 +1708,7 @@ namespace Photo.Net.Tool.Documents
         }
 
         private bool disposed = false;
+
         private void Dispose(bool disposing)
         {
             if (!disposed)
@@ -1781,6 +1725,10 @@ namespace Photo.Net.Tool.Documents
             }
         }
 
+        #endregion
+
+        #region Clone
+
         public Document Clone()
         {
             var stream = new MemoryStream();
@@ -1792,6 +1740,49 @@ namespace Photo.Net.Tool.Documents
         object ICloneable.Clone()
         {
             return Clone();
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Sets up event handling for contained objects.
+        /// </summary>
+        private void SetupEvents()
+        {
+            _layers.Changed += LayerListChangedHandler;
+            _layers.Changing += LayerListChangingHandler;
+            _layerInvalidatedDelegate = LayerInvalidatedHandler;
+
+            foreach (ImageLayer layer in _layers)
+            {
+                layer.Invalidated += _layerInvalidatedDelegate;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Use to update a ScanLine, usually in thread task context data.
+    /// </summary>
+    public sealed class UpdateScansContext
+    {
+        private readonly Document _document;
+        private readonly RenderArgs _dst;
+        private readonly Rectangle[] _scans;
+        private readonly int _startIndex;
+        private readonly int _length;
+
+        public void UpdateScans(object context)
+        {
+            _document.Render(_dst, _scans, _startIndex, _length, true);
+        }
+
+        public UpdateScansContext(Document document, RenderArgs dst, Rectangle[] scans, int startIndex, int length)
+        {
+            this._document = document;
+            this._dst = dst;
+            this._scans = scans;
+            this._startIndex = startIndex;
+            this._length = length;
         }
     }
 }

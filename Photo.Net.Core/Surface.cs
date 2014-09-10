@@ -3,8 +3,8 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using Photo.Net.Base;
+using Photo.Net.Core.Area;
 using Photo.Net.Core.Color;
-using Photo.Net.Core.Geometry;
 using Photo.Net.Core.PixelOperation;
 
 namespace Photo.Net.Core

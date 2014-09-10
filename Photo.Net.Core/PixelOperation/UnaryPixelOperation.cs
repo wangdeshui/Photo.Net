@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using Photo.Net.Core.Area;
 using Photo.Net.Core.Color;
-using Photo.Net.Core.Geometry;
 
 namespace Photo.Net.Core.PixelOperation
 {

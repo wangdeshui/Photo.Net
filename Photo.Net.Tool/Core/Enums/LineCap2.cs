@@ -1,6 +1,6 @@
 ﻿namespace Photo.Net.Tool.Core.Enums
 {
-    internal enum LineCap2
+    public enum LineCap2
     {
         Flat = 0,
         Arrow = 1,

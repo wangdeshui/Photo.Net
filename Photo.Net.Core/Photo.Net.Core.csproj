@@ -42,16 +42,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Area\Selection.cs" />
     <Compile Include="BitVector\BitVector2D.cs" />
     <Compile Include="Color\ColorBgra.cs" />
     <Compile Include="Color\IColor.cs" />
     <Compile Include="Color\IndexedColor.cs" />
     <Compile Include="Color\IndexedColorTable.cs" />
-    <Compile Include="Geometry\GeometryGraphicsPath.cs" />
+    <Compile Include="Area\GeometryGraphicsPath.cs" />
     <Compile Include="IBitVector2D.cs" />
     <Compile Include="IPixelOperation.cs" />
     <Compile Include="MemoryBlock.cs" />
     <Compile Include="PixelOperation\BinaryPixelOp.cs" />
+    <Compile Include="PixelOperation\BinaryPixelOps.cs" />
     <Compile Include="PixelOperation\PixelOperation.cs" />
     <Compile Include="PixelOperation\UserBlendOp.cs" />
     <Compile Include="PixelOperation\UserBlendOps.cs" />
@@ -59,7 +61,7 @@
     <Compile Include="PixelOperation\UnaryPixelOperation.cs" />
     <Compile Include="PixelOperation\UnaryPixelOperations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Geometry\GeometryRegion.cs" />
+    <Compile Include="Area\GeometryRegion.cs" />
     <Compile Include="ScaleFactor.cs" />
     <Compile Include="Scanline.cs" />
     <Compile Include="Struct\Edge.cs" />

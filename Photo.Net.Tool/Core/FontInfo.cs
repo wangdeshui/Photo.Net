@@ -18,7 +18,7 @@ namespace Photo.Net.Tool.Core
     /// Does not carry text alignment information.
     /// </summary>
     [Serializable]
-    internal class FontInfo
+    public class FontInfo
         : IDisposable,
           ISerializable,
           ICloneable

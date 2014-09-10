@@ -7,7 +7,7 @@ using Photo.Net.Tool.Core.Enums;
 namespace Photo.Net.Tool.Core
 {
     [Serializable]
-    internal sealed class SelectionDrawModeInfo
+    public sealed class SelectionDrawModeInfo
         : ICloneable<SelectionDrawModeInfo>,
           IDeserializationCallback
     {

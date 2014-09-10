@@ -1,6 +1,6 @@
 ﻿namespace Photo.Net.Tool.Core
 {
-    internal enum ColorPickerClickBehavior
+    public enum ColorPickerClickBehavior
     {
         NoToolSwitch,
         SwitchToLastTool,

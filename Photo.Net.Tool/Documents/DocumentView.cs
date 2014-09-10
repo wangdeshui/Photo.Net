@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -139,6 +140,8 @@ namespace Photo.Net.Tool.Documents
             set { this._panel.BorderStyle = value; }
         }
 
+        public ImageLayer ActiveLayer { get; set; }
+
         #endregion
 
         /// <summary>
@@ -150,12 +153,15 @@ namespace Photo.Net.Tool.Documents
 
             InitializeComponent();
 
+            HookMouseEvents();
+            HookKewwordEvents();
+
             this._document = null;
             this._compositionSurface = null;
 
             this._controlShadow = new ControlShadow();
             this._controlShadow.OccludingControl = _surfaceBox;
-            this._controlShadow.Paint += new PaintEventHandler(ControlShadow_Paint);
+            this._controlShadow.Paint += ControlShadow_Paint;
             this._panel.Controls.Add(_controlShadow);
             this._panel.Controls.SetChildIndex(_controlShadow, _panel.Controls.Count - 1);
 
@@ -163,7 +169,7 @@ namespace Photo.Net.Tool.Documents
             this._gridRenderer.Visible = false;
             this._surfaceBox.RendererList.Add(this._gridRenderer, true);
 
-            this._surfaceBox.RendererList.Invalidated += new InvalidateEventHandler(Renderers_Invalidated);
+            this._surfaceBox.RendererList.Invalidated += Renderers_Invalidated;
 
             this._panel.Select();
         }
@@ -799,7 +805,10 @@ namespace Photo.Net.Tool.Documents
 
                     this._document.Invalidated += Document_Invalidated;
                     this._document.Metadata.Changed += DocumentMetaDataChangedHandler;
+
+                    ActiveLayer = (BitmapLayer)_document.Layers[0];
                 }
+
 
                 Invalidate(true);
                 DocumentMetaDataChangedHandler(this, EventArgs.Empty);
@@ -822,6 +831,28 @@ namespace Photo.Net.Tool.Documents
                 this._leftRuler.Dpu = 1 / _document.PixelToPhysicalY(1, this._leftRuler.MeasurementUnit);
                 this._topRuler.Dpu = 1 / _document.PixelToPhysicalY(1, this._topRuler.MeasurementUnit);
             }
+        }
+
+        #endregion
+
+        #region EventHook
+
+        private void HookMouseEvents()
+        {
+            BubbleMouseEnter += this.MouseEnterHandler;
+            BubbleMouseLeave += this.MouseLeaveHandler;
+            BubbleMouseUp += this.MouseUpHandler;
+            BubbleMouseMove += this.MouseMoveHandler;
+            BubbleMouseDown += this.MouseDownHandler;
+            BubbleMouseClick += this.ClickHandler;
+            BubbleMouseWheel += this.MouseWheelHandler;
+        }
+
+        private void HookKewwordEvents()
+        {
+            BubbleKeyPress += this.KeyPressHandler;
+            BubbleKeyUp += this.KeyUpHandler;
+            BubbleKeyDown += this.KeyDownHandler;
         }
 
         #endregion
@@ -1027,6 +1058,59 @@ namespace Photo.Net.Tool.Documents
 
         #region Mouse
 
+        private void MouseEnterHandler(ControlBubbleEventArgs<EventArgs> e)
+        {
+            this.OnDocumentMouseEnter(System.EventArgs.Empty);
+        }
+
+        private void MouseLeaveHandler(ControlBubbleEventArgs<EventArgs> e)
+        {
+            this.OnDocumentMouseLeave(EventArgs.Empty);
+        }
+
+        private void MouseMoveHandler(ControlBubbleEventArgs<MouseEventArgs> e)
+        {
+            var point = this.MouseToDocument(e.Source, e.Args.Location);
+            if (this.RulersEnabled)
+            {
+                this._topRuler.Value = point.X;
+                this._leftRuler.Value = point.Y;
+                this.UpdateRulerOffsets();
+            }
+
+            this.OnDocumentMouseMove(new MouseEventArgs(e.Args.Button, e.Args.Clicks, point.X, point.Y, e.Args.Delta));
+        }
+
+        private void MouseUpHandler(ControlBubbleEventArgs<MouseEventArgs> e)
+        {
+            if (e.Source is Ruler) return;
+
+            var point = this.MouseToDocument(e.Source, e.Args.Location);
+            this._surfaceBox.Focus();
+            this.OnDocumentMouseUp(new MouseEventArgs(e.Args.Button, e.Args.Clicks, point.X, point.Y, e.Args.Delta));
+        }
+
+        private void MouseDownHandler(ControlBubbleEventArgs<MouseEventArgs> e)
+        {
+            if (e.Source is Ruler) return;
+
+            var point = this.MouseToDocument(e.Source, e.Args.Location);
+            this._surfaceBox.Focus();
+            this.OnDocumentMouseDown(new MouseEventArgs(e.Args.Button, e.Args.Clicks, point.X, point.Y, e.Args.Delta));
+        }
+
+        private void MouseWheelHandler(ControlBubbleEventArgs<MouseEventArgs> e)
+        {
+            if (e.Source is Ruler) return;
+
+            this.PerformMouseWheel(e.Source, e.Args);
+        }
+
+        private void ClickHandler(ControlBubbleEventArgs<MouseEventArgs> e)
+        {
+            this.OnDocumentClick();
+        }
+
         public event EventHandler DocumentMouseEnter;
 
         protected virtual void OnDocumentMouseEnter(EventArgs e)
@@ -1162,6 +1246,21 @@ namespace Photo.Net.Tool.Documents
         #endregion
 
         #region Keyword
+
+        private void KeyPressHandler(ControlBubbleEventArgs<KeyPressEventArgs> e)
+        {
+            this.OnDocumentKeyPress(new KeyPressEventArgs(e.Args.KeyChar));
+        }
+
+        private void KeyUpHandler(ControlBubbleEventArgs<KeyEventArgs> e)
+        {
+            this.OnDocumentKeyUp(e.Args);
+        }
+
+        private void KeyDownHandler(ControlBubbleEventArgs<KeyEventArgs> e)
+        {
+            this.OnDocumentKeyDown(e.Args);
+        }
 
         public event KeyPressEventHandler DocumentKeyPress;
 

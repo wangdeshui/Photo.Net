@@ -13,7 +13,7 @@ namespace Photo.Net.Tool.Core
     /// Does not carry color information.
     /// </summary>
     [Serializable]
-    internal sealed class PenInfo
+    public sealed class PenInfo
         : ICloneable,
           ISerializable
     {

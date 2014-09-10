@@ -1,6 +1,6 @@
 ﻿namespace Photo.Net.Tool.Core.Enums
 {
-    internal enum SelectionDrawMode
+    public enum SelectionDrawMode
     {
         Normal = 0,
         FixedRatio,

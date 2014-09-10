@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
-using Photo.Net.Core.Geometry;
+using Photo.Net.Core.Area;
 
 namespace Photo.Net.Tool.Window
 {

@@ -3,11 +3,10 @@ using System.Collections;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
-using PaintDotNet;
 using Photo.Net.Base;
 using Photo.Net.Core;
+using Photo.Net.Core.Area;
 using Photo.Net.Core.BitVector;
-using Photo.Net.Core.Geometry;
 using Photo.Net.Gdi.Enums;
 using Photo.Net.Gdi.Renders;
 using Photo.Net.Gdi.Surfaces;
@@ -39,44 +38,40 @@ namespace Photo.Net.Tool
     ///   documentation says otherwise. The base implementation gives the Tool a chance to provide
     ///   default, overridable behavior for an event.
     /// </remarks>
-    internal class BaseTool
+    public class BaseTool
         : IDisposable,
           IHotKeyTarget
     {
-//        public static readonly Type DefaultToolType = typeof(Tools.PaintBrushTool);
+        //        public static readonly Type DefaultToolType = typeof(Tools.PaintBrushTool);
 
-        private ImageResource toolBarImage;
-        private Cursor cursor;
-        private ToolInfo toolInfo;
-        private int mouseDown = 0; // incremented for every MouseDown, decremented for every MouseUp
-        private int ignoreMouseMove = 0; // when >0, MouseMove is ignored and then this is decremented
+        private readonly ImageResource _toolBarImage;
+        private Cursor _cursor;
+        private readonly ToolInfo _toolInfo;
+        private int _mouseDownCount; // incremented for every MouseDown, decremented for every MouseUp
+        private int _mouseEnterCount;
+        protected int IgnoreMouseMoveCount; // when >0, MouseMove is ignored and then this is decremented
 
-        protected Cursor handCursor;
-        protected Cursor handCursorMouseDown;
-        protected Cursor handCursorInvalid;
-        private Cursor panOldCursor;
-        private Point lastMouseXY;
-        private Point lastPanMouseXY;
-        private bool panMode = false; // 'true' when the user is holding down the spacebar
-        private bool panTracking = false; // 'true' when panMode is true, and when the mouse is down (which is when MouseMove should do panning)
-        private MoveNubRenderer trackingNub = null; // when we are in pan-tracking mode, we draw this in the center of the screen
+        private Point _lastMouseXy;
+        protected Cursor HandCursor;
+        protected Cursor HandCursorMouseDown;
+        protected Cursor HandCursorInvalid;
+        private MoveNubRenderer _trackingNub; // when we are in pan-tracking mode, we draw this in the center of the screen
 
-        private DocumentWorkspace documentWorkspace;
+        private readonly DocumentWorkspace _documentWorkspace;
 
-        private bool active = false;
-        protected bool autoScroll = true;
-        private Hashtable keysThatAreDown = new Hashtable();
-        private MouseButtons lastButton = MouseButtons.None;
-        private Surface scratchSurface;
-        private GeometryRegion saveRegion;
+        private bool _active = false;
+        protected bool AutoScroll = true;
+        private readonly Hashtable _keysThatAreDown = new Hashtable();
+        private MouseButtons _lastButton = MouseButtons.None;
+        private Surface _scratchSurface;
+        private GeometryRegion _saveRegion;
 
-        private int mouseEnter; // increments on MouseEnter, decrements on MouseLeave. The MouseLeave event is ONLY raised when this value decrements to 0, and MouseEnter is ONLY raised when this value increments to 1
 
         protected Surface ScratchSurface
         {
             get
             {
-                return scratchSurface;
+                return _scratchSurface;
             }
         }
 
@@ -92,7 +87,7 @@ namespace Photo.Net.Tool
         {
             get
             {
-                return this.documentWorkspace;
+                return this._documentWorkspace;
             }
         }
 
@@ -104,35 +99,27 @@ namespace Photo.Net.Tool
             }
         }
 
-        //        protected HistoryStack HistoryStack
-        //        {
-        //            get
-        //            {
-        //                return DocumentWorkspace.History;
-        //            }
-        //        }
-
-//        protected ToolEnvironment ToolEnvironment
-//        {
-//            get
-//            {
-//                return this.AppWorkspace.ToolEnvironment;
-//            }
-//        }
-
-        //        protected Selection Selection
-        //        {
-        //            get
-        //            {
-        //                return DocumentWorkspace.Selection;
-        //            }
-        //        }
-
         protected ImageLayer ActiveLayer
         {
             get
             {
                 return DocumentWorkspace.ActiveLayer;
+            }
+        }
+
+        protected ToolEnvironment ToolEnvironment
+        {
+            get
+            {
+                return this.DocumentWorkspace.AppWorkspace.ToolEnvironment;
+            }
+        }
+
+        protected Selection Selection
+        {
+            get
+            {
+                return DocumentWorkspace.Selection;
             }
         }
 
@@ -151,15 +138,15 @@ namespace Photo.Net.Tool
 
         public void ClearSavedMemory()
         {
-            this.savedTiles = null;
+            this._savedTiles = null;
         }
 
         public void ClearSavedRegion()
         {
-            if (this.saveRegion != null)
+            if (this._saveRegion != null)
             {
-                this.saveRegion.Dispose();
-                this.saveRegion = null;
+                this._saveRegion.Dispose();
+                this._saveRegion = null;
             }
         }
 
@@ -167,7 +154,7 @@ namespace Photo.Net.Tool
         {
             if (region != null)
             {
-                BitmapLayer activeLayer = (BitmapLayer)ActiveLayer;
+                var activeLayer = (BitmapLayer)ActiveLayer;
                 activeLayer.Surface.CopySurface(this.ScratchSurface, region);
                 activeLayer.Invalidate(region);
             }
@@ -175,30 +162,30 @@ namespace Photo.Net.Tool
 
         public void RestoreSavedRegion()
         {
-            if (this.saveRegion != null)
+            if (this._saveRegion != null)
             {
-                BitmapLayer activeLayer = (BitmapLayer)ActiveLayer;
-                activeLayer.Surface.CopySurface(this.ScratchSurface, this.saveRegion);
-                activeLayer.Invalidate(this.saveRegion);
-                this.saveRegion.Dispose();
-                this.saveRegion = null;
+                var activeLayer = (BitmapLayer)ActiveLayer;
+                activeLayer.Surface.CopySurface(this.ScratchSurface, this._saveRegion);
+                activeLayer.Invalidate(this._saveRegion);
+                this._saveRegion.Dispose();
+                this._saveRegion = null;
             }
         }
 
-        private const int saveTileGranularity = 32;
-        private BitVector2D savedTiles;
+        private const int SaveTileGranularity = 32;
+        private BitVector2D _savedTiles;
 
         public void SaveRegion(GeometryRegion saveMeRegion, Rectangle saveMeBounds)
         {
-            BitmapLayer activeLayer = (BitmapLayer)ActiveLayer;
+            var activeLayer = (BitmapLayer)ActiveLayer;
 
-            if (savedTiles == null)
+            if (_savedTiles == null)
             {
-                savedTiles = new BitVector2D(
-                    (activeLayer.Width + saveTileGranularity - 1) / saveTileGranularity,
-                    (activeLayer.Height + saveTileGranularity - 1) / saveTileGranularity);
+                _savedTiles = new BitVector2D(
+                    (activeLayer.Width + SaveTileGranularity - 1) / SaveTileGranularity,
+                    (activeLayer.Height + SaveTileGranularity - 1) / SaveTileGranularity);
 
-                savedTiles.Clear(false);
+                _savedTiles.Clear(false);
             }
 
             Rectangle regionBounds;
@@ -214,10 +201,10 @@ namespace Photo.Net.Tool
             Rectangle bounds = Rectangle.Union(regionBounds, saveMeBounds);
             bounds.Intersect(activeLayer.Bounds);
 
-            int leftTile = bounds.Left / saveTileGranularity;
-            int topTile = bounds.Top / saveTileGranularity;
-            int rightTile = (bounds.Right - 1) / saveTileGranularity;
-            int bottomTile = (bounds.Bottom - 1) / saveTileGranularity;
+            int leftTile = bounds.Left / SaveTileGranularity;
+            int topTile = bounds.Top / SaveTileGranularity;
+            int rightTile = (bounds.Right - 1) / SaveTileGranularity;
+            int bottomTile = (bounds.Bottom - 1) / SaveTileGranularity;
 
             for (int tileY = topTile; tileY <= bottomTile; ++tileY)
             {
@@ -225,10 +212,10 @@ namespace Photo.Net.Tool
 
                 for (int tileX = leftTile; tileX <= rightTile; ++tileX)
                 {
-                    if (!savedTiles.Get(tileX, tileY))
+                    if (!_savedTiles.Get(tileX, tileY))
                     {
-                        Rectangle tileBounds = new Rectangle(tileX * saveTileGranularity, tileY * saveTileGranularity,
-                            saveTileGranularity, saveTileGranularity);
+                        Rectangle tileBounds = new Rectangle(tileX * SaveTileGranularity, tileY * SaveTileGranularity,
+                            SaveTileGranularity, SaveTileGranularity);
 
                         tileBounds.Intersect(activeLayer.Bounds);
 
@@ -241,7 +228,7 @@ namespace Photo.Net.Tool
                             rowAccumBounds = Rectangle.Union(rowAccumBounds, tileBounds);
                         }
 
-                        savedTiles.Set(tileX, tileY, true);
+                        _savedTiles.Set(tileX, tileY, true);
                     }
                     else
                     {
@@ -270,15 +257,15 @@ namespace Photo.Net.Tool
                 }
             }
 
-            if (this.saveRegion != null)
+            if (this._saveRegion != null)
             {
-                this.saveRegion.Dispose();
-                this.saveRegion = null;
+                this._saveRegion.Dispose();
+                this._saveRegion = null;
             }
 
             if (saveMeRegion != null)
             {
-                this.saveRegion = saveMeRegion.Clone();
+                this._saveRegion = saveMeRegion.Clone();
             }
         }
 
@@ -286,23 +273,12 @@ namespace Photo.Net.Tool
         {
             public DateTime KeyDownTime;
             public DateTime LastKeyPressPulse;
-            private int repeats = 0;
 
-            public int Repeats
-            {
-                get
-                {
-                    return repeats;
-                }
-
-                set
-                {
-                    repeats = value;
-                }
-            }
+            public int Repeats { get; set; }
 
             public KeyTimeInfo()
             {
+                Repeats = 0;
                 KeyDownTime = DateTime.Now;
                 LastKeyPressPulse = KeyDownTime;
             }
@@ -317,7 +293,7 @@ namespace Photo.Net.Tool
         {
             get
             {
-                return this.active;
+                return this._active;
             }
         }
 
@@ -341,7 +317,7 @@ namespace Photo.Net.Tool
         {
             get
             {
-                return this.mouseDown > 0;
+                return this._mouseDownCount > 0;
             }
         }
 
@@ -380,7 +356,7 @@ namespace Photo.Net.Tool
         {
             get
             {
-                return this.toolBarImage;
+                return this._toolBarImage;
             }
         }
 
@@ -410,14 +386,15 @@ namespace Photo.Net.Tool
         {
             get
             {
-                return this.cursor;
+                return this._cursor;
             }
 
             set
             {
                 OnCursorChanging();
-                this.cursor = value;
+                this._cursor = value;
                 OnCursorChanged();
+                DocumentWorkspace.UpdateCursor();
             }
         }
 
@@ -428,7 +405,7 @@ namespace Photo.Net.Tool
         {
             get
             {
-                return this.toolInfo.Name;
+                return this._toolInfo.Name;
             }
         }
 
@@ -439,7 +416,7 @@ namespace Photo.Net.Tool
         {
             get
             {
-                return this.toolInfo.HelpText;
+                return this._toolInfo.HelpText;
             }
         }
 
@@ -447,7 +424,7 @@ namespace Photo.Net.Tool
         {
             get
             {
-                return this.toolInfo;
+                return this._toolInfo;
             }
         }
 
@@ -455,7 +432,7 @@ namespace Photo.Net.Tool
         {
             get
             {
-                return this.toolInfo.ToolBarConfigItems;
+                return this._toolInfo.ToolBarConfigItems;
             }
         }
 
@@ -474,11 +451,10 @@ namespace Photo.Net.Tool
         {
             get
             {
-                return this.toolInfo.HotKey;
+                return this._toolInfo.HotKey;
             }
         }
 
-        // Methods to send messages to this class
         public void PerformActivate()
         {
             Activate();
@@ -499,20 +475,20 @@ namespace Photo.Net.Tool
         {
             get
             {
-                return this.mouseEnter > 0;
+                return this._mouseEnterCount > 0;
             }
         }
 
-        public void PerformMouseEnter()
+        public void PerformMouseEnter(object sender, EventArgs args)
         {
             MouseEnter();
         }
 
         private void MouseEnter()
         {
-            ++this.mouseEnter;
+            ++this._mouseEnterCount;
 
-            if (this.mouseEnter == 1)
+            if (this._mouseEnterCount == 1)
             {
                 OnMouseEnter();
             }
@@ -522,21 +498,21 @@ namespace Photo.Net.Tool
         {
         }
 
-        public void PerformMouseLeave()
+        public void PerformMouseLeave(object sender, EventArgs args)
         {
             MouseLeave();
         }
 
         private void MouseLeave()
         {
-            if (this.mouseEnter == 1)
+            if (this._mouseEnterCount == 1)
             {
-                this.mouseEnter = 0;
+                this._mouseEnterCount = 0;
                 OnMouseLeave();
             }
             else
             {
-                this.mouseEnter = Math.Max(0, this.mouseEnter - 1);
+                this._mouseEnterCount = Math.Max(0, this._mouseEnterCount - 1);
             }
         }
 
@@ -544,7 +520,7 @@ namespace Photo.Net.Tool
         {
         }
 
-        public void PerformMouseMove(MouseEventArgs e)
+        public void PerformMouseMove(object sender, MouseEventArgs e)
         {
             if (IsOverflow(e))
             {
@@ -566,7 +542,7 @@ namespace Photo.Net.Tool
             }
         }
 
-        public void PerformMouseDown(MouseEventArgs e)
+        public void PerformMouseDown(object sender, MouseEventArgs e)
         {
             if (IsOverflow(e))
             {
@@ -593,7 +569,7 @@ namespace Photo.Net.Tool
             }
         }
 
-        public void PerformMouseUp(MouseEventArgs e)
+        public void PerformMouseUp(object sender, MouseEventArgs e)
         {
             if (IsOverflow(e))
             {
@@ -615,7 +591,7 @@ namespace Photo.Net.Tool
             }
         }
 
-        public void PerformKeyPress(KeyPressEventArgs e)
+        public void PerformKeyPress(object sender, KeyPressEventArgs e)
         {
             KeyPress(e);
         }
@@ -625,17 +601,17 @@ namespace Photo.Net.Tool
             KeyPress(key);
         }
 
-        public void PerformKeyUp(KeyEventArgs e)
+        public void PerformKeyUp(object sender, KeyEventArgs e)
         {
             KeyUp(e);
         }
 
-        public void PerformKeyDown(KeyEventArgs e)
+        public void PerformKeyDown(object sender, KeyEventArgs e)
         {
             KeyDown(e);
         }
 
-        public void PerformClick()
+        public void PerformClick(object sender, EventArgs args)
         {
             Click();
         }
@@ -657,39 +633,34 @@ namespace Photo.Net.Tool
 
         private void Activate()
         {
-            Debug.Assert(this.active != true, "already active!");
-            this.active = true;
+            this._active = true;
 
-            this.handCursor = new Cursor(PdnResources.GetResourceStream("Cursors.PanToolCursor.cur"));
-            this.handCursorMouseDown = new Cursor(PdnResources.GetResourceStream("Cursors.PanToolCursorMouseDown.cur"));
-            this.handCursorInvalid = new Cursor(PdnResources.GetResourceStream("Cursors.PanToolCursorInvalid.cur"));
+            this.HandCursor = new Cursor(PdnResources.GetResourceStream("Cursors.PanToolCursor.cur"));
+            this.HandCursorMouseDown = new Cursor(PdnResources.GetResourceStream("Cursors.PanToolCursorMouseDown.cur"));
+            this.HandCursorInvalid = new Cursor(PdnResources.GetResourceStream("Cursors.PanToolCursorInvalid.cur"));
+            this.HandCursor = Cursors.Hand;
+            this.HandCursorMouseDown = Cursors.Arrow;
+            this.HandCursorInvalid = Cursors.Arrow;
 
-            this.panTracking = false;
-            this.panMode = false;
-            this.mouseDown = 0;
-            this.savedTiles = null;
-            this.saveRegion = null;
+            this._mouseDownCount = 0;
+            this._savedTiles = null;
+            this._saveRegion = null;
 
-//            this.scratchSurface = DocumentWorkspace.BorrowScratchSurface(this.GetType().Name + ": Tool.Activate()");
+            this._scratchSurface = DocumentWorkspace.BorrowScratchSurface();
             //
-            //            Selection.Changing += new EventHandler(SelectionChangingHandler);
-            //            Selection.Changed += new EventHandler(SelectionChangedHandler);
-            //            HistoryStack.ExecutingHistoryMemento += new ExecutingHistoryMementoEventHandler(ExecutingHistoryMemento);
-            //            HistoryStack.ExecutedHistoryMemento += new ExecutedHistoryMementoEventHandler(ExecutedHistoryMemento);
-            //            HistoryStack.FinishedStepGroup += new EventHandler(FinishedHistoryStepGroup);
+            //                        Selection.Changing += new EventHandler(SelectionChangingHandler);
+            //                        Selection.Changed += new EventHandler(SelectionChangedHandler);
+            //                        HistoryStack.ExecutingHistoryMemento += new ExecutingHistoryMementoEventHandler(ExecutingHistoryMemento);
+            //                        HistoryStack.ExecutedHistoryMemento += new ExecutedHistoryMementoEventHandler(ExecutedHistoryMemento);
+            //                        HistoryStack.FinishedStepGroup += new EventHandler(FinishedHistoryStepGroup);
 
-            this.trackingNub = new MoveNubRenderer(this.RendererList);
-            this.trackingNub.Visible = false;
-            this.trackingNub.Size = new SizeF(10, 10);
-            this.trackingNub.Shape = MoveNubShape.Compass;
-            this.RendererList.Add(this.trackingNub, false);
+            this._trackingNub = new MoveNubRenderer(this.RendererList);
+            this._trackingNub.Visible = false;
+            this._trackingNub.Size = new SizeF(10, 10);
+            this._trackingNub.Shape = MoveNubShape.Compass;
+            this.RendererList.Add(this._trackingNub, false);
 
             OnActivate();
-        }
-
-        void FinishedHistoryStepGroup(object sender, EventArgs e)
-        {
-            OnFinishedHistoryStepGroup();
         }
 
         protected virtual void OnFinishedHistoryStepGroup()
@@ -706,48 +677,48 @@ namespace Photo.Net.Tool
 
         private void Deactivate()
         {
-            this.active = false;
+            this._active = false;
 
-            //            Selection.Changing -= new EventHandler(SelectionChangingHandler);
-            //            Selection.Changed -= new EventHandler(SelectionChangedHandler);
-            //
-            //            HistoryStack.ExecutingHistoryMemento -= new ExecutingHistoryMementoEventHandler(ExecutingHistoryMemento);
-            //            HistoryStack.ExecutedHistoryMemento -= new ExecutedHistoryMementoEventHandler(ExecutedHistoryMemento);
-            //            HistoryStack.FinishedStepGroup -= new EventHandler(FinishedHistoryStepGroup);
+            //                        Selection.Changing -= new EventHandler(SelectionChangingHandler);
+            //                        Selection.Changed -= new EventHandler(SelectionChangedHandler);
+            //            
+            //                        HistoryStack.ExecutingHistoryMemento -= new ExecutingHistoryMementoEventHandler(ExecutingHistoryMemento);
+            //                        HistoryStack.ExecutedHistoryMemento -= new ExecutedHistoryMementoEventHandler(ExecutedHistoryMemento);
+            //                        HistoryStack.FinishedStepGroup -= new EventHandler(FinishedHistoryStepGroup);
 
             OnDeactivate();
 
-            this.RendererList.Remove(this.trackingNub);
-            this.trackingNub.Dispose();
-            this.trackingNub = null;
+            this.RendererList.Remove(this._trackingNub);
+            this._trackingNub.Dispose();
+            this._trackingNub = null;
 
-//            DocumentWorkspace.ReturnScratchSurface(this.scratchSurface);
-            this.scratchSurface = null;
+            DocumentWorkspace.ReturnScratchSurface(this._scratchSurface);
+            this._scratchSurface = null;
 
-            if (this.saveRegion != null)
+            if (this._saveRegion != null)
             {
-                this.saveRegion.Dispose();
-                this.saveRegion = null;
+                this._saveRegion.Dispose();
+                this._saveRegion = null;
             }
 
-            this.savedTiles = null;
+            this._savedTiles = null;
 
-            if (this.handCursor != null)
+            if (this.HandCursor != null)
             {
-                this.handCursor.Dispose();
-                this.handCursor = null;
+                this.HandCursor.Dispose();
+                this.HandCursor = null;
             }
 
-            if (this.handCursorMouseDown != null)
+            if (this.HandCursorMouseDown != null)
             {
-                this.handCursorMouseDown.Dispose();
-                this.handCursorMouseDown = null;
+                this.HandCursorMouseDown.Dispose();
+                this.HandCursorMouseDown = null;
             }
 
-            if (this.handCursorInvalid != null)
+            if (this.HandCursorInvalid != null)
             {
-                this.handCursorInvalid.Dispose();
-                this.handCursorInvalid = null;
+                this.HandCursorInvalid.Dispose();
+                this.HandCursorInvalid = null;
             }
         }
 
@@ -758,14 +729,11 @@ namespace Photo.Net.Tool
         /// </summary>
         protected virtual void OnDeactivate()
         {
+            UnBindEvent();
         }
 
         private void StylusDown(StylusEventArgs e)
         {
-            if (!this.panMode)
-            {
-                OnStylusDown(e);
-            }
         }
 
         protected virtual void OnStylusDown(StylusEventArgs e)
@@ -774,15 +742,11 @@ namespace Photo.Net.Tool
 
         private void StylusMove(StylusEventArgs e)
         {
-            if (!this.panMode)
-            {
-                OnStylusMove(e);
-            }
         }
 
         protected virtual void OnStylusMove(StylusEventArgs e)
         {
-            if (this.mouseDown > 0)
+            if (this._mouseDownCount > 0)
             {
                 ScrollIfNecessary(new PointF(e.X, e.Y));
             }
@@ -790,16 +754,7 @@ namespace Photo.Net.Tool
 
         private void StylusUp(StylusEventArgs e)
         {
-            if (this.panTracking)
-            {
-                this.trackingNub.Visible = false;
-                this.panTracking = false;
-                this.Cursor = this.handCursor;
-            }
-            else
-            {
-                OnStylusUp(e);
-            }
+            OnStylusUp(e);
         }
 
         protected virtual void OnStylusUp(StylusEventArgs e)
@@ -808,45 +763,14 @@ namespace Photo.Net.Tool
 
         private void MouseMove(MouseEventArgs e)
         {
-            if (this.ignoreMouseMove > 0)
+            if (this.IgnoreMouseMoveCount > 0)
             {
-                --this.ignoreMouseMove;
+                --this.IgnoreMouseMoveCount;
             }
-            else if (this.panTracking && e.Button == MouseButtons.Left)
-            {
-                // Pan the document, using Stylus coordinates. This is done in
-                // MouseMove instead of StylusMove because StylusMove is
-                // asynchronous, and would not 'feel' right (pan motions would
-                // stack up)
+            OnMouseMove(e);
 
-                Point position = new Point(e.X, e.Y);
-                RectangleF visibleRect = DocumentWorkspace.VisibleDocumentRectangleF;
-                PointF visibleCenterPt = Utility.GetRectangleCenter(visibleRect);
-                PointF delta = new PointF(e.X - lastPanMouseXY.X, e.Y - lastPanMouseXY.Y);
-                PointF newScroll = DocumentWorkspace.DocumentScrollPositionF;
-
-                if (delta.X != 0 || delta.Y != 0)
-                {
-                    newScroll.X -= delta.X;
-                    newScroll.Y -= delta.Y;
-
-                    lastPanMouseXY = new Point(e.X, e.Y);
-                    lastPanMouseXY.X -= (int)Math.Truncate(delta.X);
-                    lastPanMouseXY.Y -= (int)Math.Truncate(delta.Y);
-
-                    ++this.ignoreMouseMove; // setting DocumentScrollPosition incurs a MouseMove event. ignore it prevents 'jittering' at non-integral zoom levels (like, say, 743%)
-                    DocumentWorkspace.DocumentScrollPositionF = newScroll;
-                    Update();
-                }
-
-            }
-            else if (!this.panMode)
-            {
-                OnMouseMove(e);
-            }
-
-            this.lastMouseXY = new Point(e.X, e.Y);
-            this.lastButton = e.Button;
+            this._lastMouseXy = new Point(e.X, e.Y);
+            this._lastButton = e.Button;
         }
 
         /// <summary>
@@ -856,32 +780,15 @@ namespace Photo.Net.Tool
         /// <param name="e">Contains information about where the mouse cursor is, in document coordinates.</param>
         protected virtual void OnMouseMove(MouseEventArgs e)
         {
-            if (this.panMode || this.mouseDown > 0)
-            {
-                ScrollIfNecessary(new PointF(e.X, e.Y));
-            }
         }
 
         private void MouseDown(MouseEventArgs e)
         {
-            ++this.mouseDown;
+            ++this._mouseDownCount;
 
-            if (this.panMode)
-            {
-                this.panTracking = true;
-                this.lastPanMouseXY = new Point(e.X, e.Y);
+            OnMouseDown(e);
 
-                if (this.CanPan())
-                {
-                    this.Cursor = this.handCursorMouseDown;
-                }
-            }
-            else
-            {
-                OnMouseDown(e);
-            }
-
-            this.lastMouseXY = new Point(e.X, e.Y);
+            this._lastMouseXy = new Point(e.X, e.Y);
         }
 
         /// <summary>
@@ -891,19 +798,16 @@ namespace Photo.Net.Tool
         /// <param name="e">Contains information about where the mouse cursor is, in document coordinates, and which mouse buttons were pressed.</param>
         protected virtual void OnMouseDown(MouseEventArgs e)
         {
-            this.lastButton = e.Button;
+            this._lastButton = e.Button;
         }
 
         private void MouseUp(MouseEventArgs e)
         {
-            --this.mouseDown;
+            --this._mouseDownCount;
 
-            if (!this.panMode)
-            {
-                OnMouseUp(e);
-            }
+            OnMouseUp(e);
 
-            this.lastMouseXY = new Point(e.X, e.Y);
+            this._lastMouseXy = new Point(e.X, e.Y);
         }
 
         /// <summary>
@@ -913,7 +817,7 @@ namespace Photo.Net.Tool
         /// <param name="e">Contains information about where the mouse cursor is, in document coordinates, and which mouse buttons were released.</param>
         protected virtual void OnMouseUp(MouseEventArgs e)
         {
-            this.lastButton = e.Button;
+            this._lastButton = e.Button;
         }
 
         private void Click()
@@ -936,22 +840,6 @@ namespace Photo.Net.Tool
             OnKeyPress(e);
         }
 
-        private static DateTime lastToolSwitch = DateTime.MinValue;
-
-        // if we are pressing 'S' to switch to the selection tools, then consecutive
-        // presses of 'S' should switch to the next selection tol in the list. however,
-        // if we wait awhile then pressing 'S' should go to the *first* selection
-        // tool. 'awhile' is defined by this variable.
-        private static readonly TimeSpan toolSwitchReset = new TimeSpan(0, 0, 0, 2, 0);
-
-        private const char decPenSizeShortcut = '[';
-        private const char decPenSizeBy5Shortcut = (char)27; // Ctrl [ but must also test that Ctrl is down
-        private const char incPenSizeShortcut = ']';
-        private const char incPenSizeBy5Shortcut = (char)29; // Ctrl ] but must also test that Ctrl is down
-        private const char swapColorsShortcut = 'x';
-        private const char swapPrimarySecondaryChoice = 'c';
-        private char[] wildShortcuts = new char[] { ',', '.', '/' };
-
         // Return true if the key is handled, false if not.
         protected virtual bool OnWildShortcutKey(int ordinal)
         {
@@ -972,10 +860,10 @@ namespace Photo.Net.Tool
             }
         }
 
-        private DateTime lastKeyboardMove = DateTime.MinValue;
-        private Keys lastKey;
-        private int keyboardMoveSpeed = 1;
-        private int keyboardMoveRepeats = 0;
+        private DateTime _lastKeyboardMove = DateTime.MinValue;
+        private Keys _lastKey;
+        private int _keyboardMoveSpeed = 1;
+        private int _keyboardMoveRepeats = 0;
 
         private void KeyPress(Keys key)
         {
@@ -991,12 +879,12 @@ namespace Photo.Net.Tool
         {
             Point dir = Point.Empty;
 
-            if (key != lastKey)
+            if (key != _lastKey)
             {
-                lastKeyboardMove = DateTime.MinValue;
+                _lastKeyboardMove = DateTime.MinValue;
             }
 
-            lastKey = key;
+            _lastKey = key;
 
             switch (key)
             {
@@ -1019,26 +907,26 @@ namespace Photo.Net.Tool
 
             if (!dir.Equals(Point.Empty))
             {
-                long span = DateTime.Now.Ticks - lastKeyboardMove.Ticks;
+                long span = DateTime.Now.Ticks - _lastKeyboardMove.Ticks;
 
                 if ((span * 4) > TimeSpan.TicksPerSecond)
                 {
-                    keyboardMoveRepeats = 0;
-                    keyboardMoveSpeed = 1;
+                    _keyboardMoveRepeats = 0;
+                    _keyboardMoveSpeed = 1;
                 }
                 else
                 {
-                    keyboardMoveRepeats++;
+                    _keyboardMoveRepeats++;
 
-                    if (keyboardMoveRepeats > 15 && (keyboardMoveRepeats % 4) == 0)
+                    if (_keyboardMoveRepeats > 15 && (_keyboardMoveRepeats % 4) == 0)
                     {
-                        keyboardMoveSpeed++;
+                        _keyboardMoveSpeed++;
                     }
                 }
 
-                lastKeyboardMove = DateTime.Now;
+                _lastKeyboardMove = DateTime.Now;
 
-                int offset = (int)(Math.Ceiling(DocumentWorkspace.ScaleFactor.Ratio) * (double)keyboardMoveSpeed);
+                int offset = (int)(Math.Ceiling(DocumentWorkspace.ScaleFactor.Ratio) * (double)_keyboardMoveSpeed);
                 Cursor.Position = new Point(Cursor.Position.X + offset * dir.X, Cursor.Position.Y + offset * dir.Y);
 
                 Point location = DocumentWorkspace.PointToScreen(Point.Truncate(DocumentWorkspace.DocumentToClient(PointF.Empty)));
@@ -1049,8 +937,8 @@ namespace Photo.Net.Tool
                 stylusLoc = DocumentWorkspace.ScaleFactor.UnscalePoint(stylusLoc);
                 stylusLocF = DocumentWorkspace.ScaleFactor.UnscalePoint(stylusLocF);
 
-                DocumentWorkspace.PerformDocumentMouseMove(new StylusEventArgs(lastButton, 1, stylusLocF.X, stylusLocF.Y, 0, 1.0f));
-                DocumentWorkspace.PerformDocumentMouseMove(new MouseEventArgs(lastButton, 1, stylusLoc.X, stylusLoc.Y, 0));
+                DocumentWorkspace.PerformDocumentMouseMove(new StylusEventArgs(_lastButton, 1, stylusLocF.X, stylusLocF.Y, 0, 1.0f));
+                DocumentWorkspace.PerformDocumentMouseMove(new MouseEventArgs(_lastButton, 1, stylusLoc.X, stylusLoc.Y, 0));
             }
         }
 
@@ -1071,16 +959,6 @@ namespace Photo.Net.Tool
 
         private void KeyUp(KeyEventArgs e)
         {
-            if (this.panMode)
-            {
-                this.panMode = false;
-                this.panTracking = false;
-                this.trackingNub.Visible = false;
-                this.Cursor = this.panOldCursor;
-                this.panOldCursor = null;
-                e.Handled = true;
-            }
-
             OnKeyUp(e);
         }
 
@@ -1090,7 +968,7 @@ namespace Photo.Net.Tool
         /// </summary>
         protected virtual void OnKeyUp(KeyEventArgs e)
         {
-            keysThatAreDown.Clear();
+            _keysThatAreDown.Clear();
         }
 
         private void KeyDown(KeyEventArgs e)
@@ -1107,26 +985,9 @@ namespace Photo.Net.Tool
         {
             if (!e.Handled)
             {
-                if (!keysThatAreDown.Contains(e.KeyData))
+                if (!_keysThatAreDown.Contains(e.KeyData))
                 {
-                    keysThatAreDown.Add(e.KeyData, new KeyTimeInfo());
-                }
-
-                if (!this.IsMouseDown &&
-                    !this.panMode &&
-                    e.KeyCode == Keys.Space)
-                {
-                    this.panMode = true;
-                    this.panOldCursor = this.Cursor;
-
-                    if (CanPan())
-                    {
-                        this.Cursor = this.handCursor;
-                    }
-                    else
-                    {
-                        this.Cursor = this.handCursorInvalid;
-                    }
+                    _keysThatAreDown.Add(e.KeyData, new KeyTimeInfo());
                 }
 
                 // arrow keys are processed in another way
@@ -1137,22 +998,12 @@ namespace Photo.Net.Tool
             }
         }
 
-        private void SelectionChanging()
-        {
-            OnSelectionChanging();
-        }
-
         /// <summary>
         /// This method is called when the Tool is active and the selection area is
         /// about to be changed.
         /// </summary>
         protected virtual void OnSelectionChanging()
         {
-        }
-
-        private void SelectionChanged()
-        {
-            OnSelectionChanged();
         }
 
         /// <summary>
@@ -1162,24 +1013,6 @@ namespace Photo.Net.Tool
         protected virtual void OnSelectionChanged()
         {
         }
-
-        //        private void ExecutingHistoryMemento(object sender, ExecutingHistoryMementoEventArgs e)
-        //        {
-        //            OnExecutingHistoryMemento(e);
-        //        }
-        //
-        //        protected virtual void OnExecutingHistoryMemento(ExecutingHistoryMementoEventArgs e)
-        //        {
-        //        }
-        //
-        //        private void ExecutedHistoryMemento(object sender, ExecutedHistoryMementoEventArgs e)
-        //        {
-        //            OnExecutedHistoryMemento(e);
-        //        }
-        //
-        //        protected virtual void OnExecutedHistoryMemento(ExecutedHistoryMementoEventArgs e)
-        //        {
-        //        }
 
         private void PasteQuery(IDataObject data, out bool canHandle)
         {
@@ -1247,26 +1080,26 @@ namespace Photo.Net.Tool
         /// </summary>
         protected virtual void OnPulse()
         {
-            if (this.panTracking && this.lastButton == MouseButtons.Right)
+            if (this._lastButton == MouseButtons.Right)
             {
-                Point position = this.lastMouseXY;
+                Point position = this._lastMouseXy;
                 RectangleF visibleRect = DocumentWorkspace.VisibleDocumentRectangleF;
                 PointF visibleCenterPt = Utility.GetRectangleCenter(visibleRect);
                 PointF delta = new PointF(position.X - visibleCenterPt.X, position.Y - visibleCenterPt.Y);
                 PointF newScroll = DocumentWorkspace.DocumentScrollPositionF;
 
-                this.trackingNub.Visible = true;
+                this._trackingNub.Visible = true;
 
                 if (delta.X != 0 || delta.Y != 0)
                 {
                     newScroll.X += delta.X;
                     newScroll.Y += delta.Y;
 
-                    ++this.ignoreMouseMove; // setting DocumentScrollPosition incurs a MouseMove event. ignore it prevents 'jittering' at non-integral zoom levels (like, say, 743%)
+                    ++this.IgnoreMouseMoveCount; // setting DocumentScrollPosition incurs a MouseMove event. ignore it prevents 'jittering' at non-integral zoom levels (like, say, 743%)
                     UserInterface.SuspendControlPainting(DocumentWorkspace);
                     DocumentWorkspace.DocumentScrollPositionF = newScroll;
-                    this.trackingNub.Visible = true;
-                    this.trackingNub.Location = Utility.GetRectangleCenter(DocumentWorkspace.VisibleDocumentRectangleF);
+                    this._trackingNub.Visible = true;
+                    this._trackingNub.Location = Utility.GetRectangleCenter(DocumentWorkspace.VisibleDocumentRectangleF);
                     UserInterface.ResumeControlPainting(DocumentWorkspace);
                     DocumentWorkspace.Invalidate(true);
                     Update();
@@ -1276,7 +1109,7 @@ namespace Photo.Net.Tool
 
         protected bool ScrollIfNecessary(PointF position)
         {
-            if (!autoScroll || !CanPan())
+            if (!AutoScroll || !CanPan())
             {
                 return false;
             }
@@ -1320,16 +1153,6 @@ namespace Photo.Net.Tool
             }
         }
 
-        private void SelectionChangingHandler(object sender, EventArgs e)
-        {
-            OnSelectionChanging();
-        }
-
-        private void SelectionChangedHandler(object sender, EventArgs e)
-        {
-            OnSelectionChanged();
-        }
-
         protected void SetStatus(ImageResource statusIcon, string statusText)
         {
             //            if (statusIcon == null && statusText != null)
@@ -1353,37 +1176,40 @@ namespace Photo.Net.Tool
             DocumentWorkspace.Update();
         }
 
-        //        protected object GetStaticData()
-        //        {
-        //            return DocumentWorkspace.GetStaticToolData(this.GetType());
-        //        }
-        //
-        //        protected void SetStaticData(object data)
-        //        {
-        //            DocumentWorkspace.SetStaticToolData(this.GetType(), data);
-        //        }
+        #region Instance
 
-        // NOTE: Your constructor must be able to run successfully with a documentWorkspace
-        //       of null. This is sent in while the DocumentControl static constructor 
-        //       class is building a list of ToolInfo instances, so that it may construct
-        //       the list without having to also construct a DocumentControl.
         public BaseTool(DocumentWorkspace documentWorkspace,
-                    ImageResource toolBarImage,
-                    string name,
-                    string helpText,
-                    char hotKey,
-                    bool skipIfActiveOnHotKey,
-                    ToolBarConfigItems toolBarConfigItems)
+            ImageResource toolBarImage,
+            string name,
+            string helpText,
+            char hotKey,
+            bool skipIfActiveOnHotKey,
+            ToolBarConfigItems toolBarConfigItems)
         {
-            this.documentWorkspace = documentWorkspace;
-            this.toolBarImage = toolBarImage;
-            this.toolInfo = new ToolInfo(name, helpText, toolBarImage, hotKey, skipIfActiveOnHotKey, toolBarConfigItems, this.GetType());
+            this._documentWorkspace = documentWorkspace;
+            this._toolBarImage = toolBarImage;
+            this._toolInfo = new ToolInfo(name, helpText, toolBarImage, hotKey, skipIfActiveOnHotKey, toolBarConfigItems,
+                this.GetType());
 
-            if (this.documentWorkspace != null)
-            {
-                //                this.documentWorkspace.UpdateStatusBarToToolHelpText(this);
-            }
+            if (documentWorkspace == null) return;
+
+            documentWorkspace.DocumentKeyDown += PerformKeyDown;
+            documentWorkspace.DocumentKeyUp += PerformKeyUp;
+            documentWorkspace.DocumentKeyPress += PerformKeyPress;
+
+            documentWorkspace.DocumentMouseEnter += PerformMouseEnter;
+            documentWorkspace.DocumentMouseLeave += PerformMouseLeave;
+
+            documentWorkspace.DocumentMouseDown += PerformMouseDown;
+            documentWorkspace.DocumentMouseUp += PerformMouseUp;
+            documentWorkspace.DocumentClick += PerformClick;
+            documentWorkspace.DocumentMouseMove += PerformMouseMove;
+
         }
+
+        #endregion
+
+        #region Dispose
 
         ~BaseTool()
         {
@@ -1398,21 +1224,21 @@ namespace Photo.Net.Tool
 
         protected virtual void Dispose(bool disposing)
         {
-            Debug.Assert(!this.active, "Tool is still active!");
-
             if (disposing)
             {
-                if (this.saveRegion != null)
+                if (this._saveRegion != null)
                 {
-                    this.saveRegion.Dispose();
-                    this.saveRegion = null;
+                    this._saveRegion.Dispose();
+                    this._saveRegion = null;
                 }
+
 
                 OnDisposed();
             }
         }
 
         public event EventHandler Disposed;
+
         private void OnDisposed()
         {
             if (Disposed != null)
@@ -1420,6 +1246,27 @@ namespace Photo.Net.Tool
                 Disposed(this, EventArgs.Empty);
             }
         }
+
+        private void UnBindEvent()
+        {
+            if (_documentWorkspace != null)
+            {
+                _documentWorkspace.DocumentKeyDown -= PerformKeyDown;
+                _documentWorkspace.DocumentKeyUp -= PerformKeyUp;
+                _documentWorkspace.DocumentKeyPress -= PerformKeyPress;
+
+                _documentWorkspace.DocumentMouseEnter -= PerformMouseEnter;
+                _documentWorkspace.DocumentMouseLeave -= PerformMouseLeave;
+
+                _documentWorkspace.DocumentMouseDown -= PerformMouseDown;
+                _documentWorkspace.DocumentMouseUp -= PerformMouseUp;
+                _documentWorkspace.DocumentClick -= PerformClick;
+                _documentWorkspace.DocumentMouseMove -= PerformMouseMove;
+            }
+
+        }
+
+        #endregion
 
         public Form AssociatedForm
         {

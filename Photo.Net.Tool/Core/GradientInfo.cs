@@ -16,7 +16,7 @@ using Photo.Net.Tool.Core.Enums;
 namespace Photo.Net.Tool.Core
 {
     [Serializable]
-    internal sealed class GradientInfo
+    public sealed class GradientInfo
         : ICloneable
     {
         private GradientType gradientType;

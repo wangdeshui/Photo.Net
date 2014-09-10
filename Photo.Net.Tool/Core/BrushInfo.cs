@@ -10,7 +10,7 @@ namespace Photo.Net.Tool.Core
     /// Does not carry color information.
     /// </summary>
     [Serializable]
-    internal class BrushInfo
+    public class BrushInfo
         : ICloneable
     {
         private BrushType brushType;

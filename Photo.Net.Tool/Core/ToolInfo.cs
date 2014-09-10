@@ -5,71 +5,30 @@ using Photo.Net.Tool.Core.Enums;
 
 namespace Photo.Net.Tool.Core
 {
+    /// <summary>
+    /// Description all about a tool instance
+    /// </summary>
     public class ToolInfo
     {
-        private string name;
-        private string helpText;
-        private ImageResource image;
-        private bool skipIfActiveOnHotKey;
-        private char hotKey;
-        private Type toolType;
-        private ToolBarConfigItems toolBarConfigItems;
+        #region Propertys
 
-        public string Name
-        {
-            get
-            {
-                return this.name;
-            }
-        }
+        public string Name { get; private set; }
 
-        public string HelpText
-        {
-            get
-            {
-                return this.helpText;
-            }
-        }
+        public string HelpText { get; private set; }
 
-        public ImageResource Image
-        {
-            get
-            {
-                return this.image;
-            }
-        }
+        public ImageResource Image { get; private set; }
 
-        public bool SkipIfActiveOnHotKey
-        {
-            get
-            {
-                return this.skipIfActiveOnHotKey;
-            }
-        }
+        public bool SkipIfActiveOnHotKey { get; private set; }
 
-        public char HotKey
-        {
-            get
-            {
-                return this.hotKey;
-            }
-        }
+        public char HotKey { get; private set; }
 
-        public Type ToolType
-        {
-            get
-            {
-                return this.toolType;
-            }
-        }
+        public Type ToolType { get; private set; }
 
-        public ToolBarConfigItems ToolBarConfigItems
-        {
-            get
-            {
-                return this.toolBarConfigItems;
-            }
-        }
+        public ToolBarConfigItems ToolBarConfigItems { get; private set; }
+
+        #endregion
+
+        #region Equal
 
         public override bool Equals(object obj)
         {
@@ -80,17 +39,19 @@ namespace Photo.Net.Tool.Core
                 return false;
             }
 
-            return (this.name == rhs.name) &&
-                   (this.helpText == rhs.helpText) &&
-                   (this.hotKey == rhs.hotKey) &&
-                   (this.skipIfActiveOnHotKey == rhs.skipIfActiveOnHotKey) &&
-                   (this.toolType == rhs.toolType);
+            return (this.Name == rhs.Name) &&
+                   (this.HelpText == rhs.HelpText) &&
+                   (this.HotKey == rhs.HotKey) &&
+                   (this.SkipIfActiveOnHotKey == rhs.SkipIfActiveOnHotKey) &&
+                   (this.ToolType == rhs.ToolType);
         }
 
         public override int GetHashCode()
         {
-            return name.GetHashCode();
+            return Name.GetHashCode();
         }
+
+        #endregion
 
         public ToolInfo(
             string name,
@@ -101,13 +62,13 @@ namespace Photo.Net.Tool.Core
             ToolBarConfigItems toolBarConfigItems,
             Type toolType)
         {
-            this.name = name;
-            this.helpText = helpText;
-            this.image = image;
-            this.hotKey = hotKey;
-            this.skipIfActiveOnHotKey = skipIfActiveOnHotKey;
-            this.toolBarConfigItems = toolBarConfigItems;
-            this.toolType = toolType;
+            this.Name = name;
+            this.HelpText = helpText;
+            this.Image = image;
+            this.HotKey = hotKey;
+            this.SkipIfActiveOnHotKey = skipIfActiveOnHotKey;
+            this.ToolBarConfigItems = toolBarConfigItems;
+            this.ToolType = toolType;
         }
     }
 }

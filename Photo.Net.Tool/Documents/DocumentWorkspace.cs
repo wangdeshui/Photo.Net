@@ -10,10 +10,12 @@ using Photo.Net.Base.Delegate;
 using Photo.Net.Base.Exceptions;
 using Photo.Net.Base.IO;
 using Photo.Net.Core;
+using Photo.Net.Core.Area;
 using Photo.Net.Resource;
+using Photo.Net.Tool.Core;
 using Photo.Net.Tool.IO;
-using Photo.Net.Tool.Layer;
 using Photo.Net.Tool.Thumbnail;
+using Photo.Net.Tool.Tools;
 
 namespace Photo.Net.Tool.Documents
 {
@@ -31,11 +33,17 @@ namespace Photo.Net.Tool.Documents
 
         public int ActiveLayerIndex { get; set; }
 
-        public ImageLayer ActiveLayer { get; set; }
+        public AppWorkspace AppWorkspace { get; set; }
 
-        public AppWorkspace AppWorkspace { get; private set; }
+        public Selection Selection { get; set; }
 
         #endregion
+
+        static DocumentWorkspace()
+        {
+            InitializeTools();
+            InitializeToolInfos();
+        }
 
         public DocumentWorkspace()
         {
@@ -269,9 +277,120 @@ namespace Photo.Net.Tool.Documents
             base.HandleMouseWheel(sender, e);
         }
 
+        #region Tools
+
+        public static Type[] ToolTypes { get; private set; }
+        public static ToolInfo[] ToolInfos { get; private set; }
+        public static BaseTool ActiveTool { get; private set; }
 
         private static void InitializeTools()
         {
+            ToolTypes = new[]
+            {
+                typeof (PanTool),
+                typeof(PencilTool)
+            };
         }
+
+        private static void InitializeToolInfos()
+        {
+            int i = 0;
+            ToolInfos = new ToolInfo[ToolTypes.Length];
+
+            foreach (Type toolType in ToolTypes)
+            {
+                using (BaseTool tool = CreateTool(toolType, null))
+                {
+                    ToolInfos[i] = tool.Info;
+                    ++i;
+                }
+            }
+        }
+
+        private static BaseTool CreateTool(Type toolType, DocumentWorkspace document)
+        {
+            //Create tool by reflection and relate with DocumentWorkspace
+            ConstructorInfo ci = toolType.GetConstructor(new[] { typeof(DocumentWorkspace) });
+            if (ci == null) throw new TypeLoadException();
+
+            var tool = (BaseTool)ci.Invoke(new object[] { document });
+            return tool;
+        }
+
+        public void SetTool(Type toolType)
+        {
+            if (ActiveTool != null)
+            {
+                ActiveTool.PerformDeactivate();
+            }
+
+            ActiveTool = CreateTool(toolType, this);
+            ActiveTool.PerformActivate();
+            this.Cursor = ActiveTool.Cursor;
+        }
+
+        public void UpdateCursor()
+        {
+            if (ActiveTool != null)
+                this.Cursor = ActiveTool.Cursor;
+        }
+
+        #endregion
+
+        #region ScratchSurface
+
+        public bool IsScratchSurfaceBorrowed;
+        private Surface _scratchSurface;
+
+        public Surface BorrowScratchSurface()
+        {
+            if (IsScratchSurfaceBorrowed)
+            {
+                throw new InvalidOperationException();
+            }
+
+            this.IsScratchSurfaceBorrowed = true;
+
+            return this._scratchSurface;
+        }
+
+        protected override void OnDocumentChanged()
+        {
+            if (this._scratchSurface != null)
+            {
+                if (this.IsScratchSurfaceBorrowed)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if (Document == null || this._scratchSurface.Size != Document.Size)
+                {
+                    this._scratchSurface.Dispose();
+                    this._scratchSurface = null;
+                }
+            }
+
+            if (Document != null) this._scratchSurface = new Surface(Document.Size);
+
+            base.OnDocumentChanged();
+        }
+
+        public void ReturnScratchSurface(Surface borrowedScratchSurface)
+        {
+            if (!this.IsScratchSurfaceBorrowed)
+            {
+                throw new InvalidOperationException("ScratchSurface wasn't borrowed");
+            }
+
+            if (this._scratchSurface != borrowedScratchSurface)
+            {
+                throw new InvalidOperationException("returned ScratchSurface doesn't match the real one");
+            }
+
+            this.IsScratchSurfaceBorrowed = false;
+        }
+
+
+        #endregion
     }
 }

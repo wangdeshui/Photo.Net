@@ -1,6 +1,6 @@
 ﻿namespace Photo.Net.Tool.Core.Enums
 {
-    internal enum BrushType
+    public enum BrushType
     {
         Solid,
         Hatch,

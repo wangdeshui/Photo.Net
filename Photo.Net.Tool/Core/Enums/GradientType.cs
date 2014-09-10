@@ -1,6 +1,6 @@
 ﻿namespace Photo.Net.Tool.Core.Enums
 {
-    internal enum GradientType
+    public enum GradientType
     {
         LinearClamped,
         LinearReflected,

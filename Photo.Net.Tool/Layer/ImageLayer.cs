@@ -2,15 +2,13 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Drawing;
-using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Forms;
 using Photo.Net.Base;
-using Photo.Net.Base.Delegate;
 using Photo.Net.Core;
+using Photo.Net.Core.Area;
 using Photo.Net.Core.Color;
-using Photo.Net.Core.Geometry;
 using Photo.Net.Gdi.Event;
 using Photo.Net.Resource;
 using Photo.Net.Tool.Documents;
@@ -566,7 +564,7 @@ namespace Photo.Net.Tool.Layer
             // but on subsequent layers we invert transparent white -> transparent black, which shows up as white for the most part
             BitmapLayer layer = new BitmapLayer(width, height, ColorBgra.White);
 
-            layer.Name = PdnResources.GetString("Layer.Background.Name");
+            //            layer.Name = PdnResources.GetString("Layer.Background.Name");
 
             // tag it as a background layer
             layer.properties.isBackground = true;

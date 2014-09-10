@@ -3,7 +3,7 @@
 namespace Photo.Net.Tool.Core.Enums
 {
     [Flags]
-    internal enum ShapeDrawType
+    public enum ShapeDrawType
     {
         Interior = 1,
         Outline = 2,

@@ -57,13 +57,7 @@
     </Compile>
     <Compile Include="Forms\LayerPropertiesDialog.cs" />
     <Compile Include="Forms\MainPanel.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\ToolSet.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\ToolSet.Designer.cs">
-      <DependentUpon>ToolSet.cs</DependentUpon>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>
@@ -75,9 +69,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Forms\ColorsWindow.resx">
       <DependentUpon>ColorsWindow.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\ToolSet.resx">
-      <DependentUpon>ToolSet.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>

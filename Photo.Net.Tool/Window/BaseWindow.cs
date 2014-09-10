@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Resources;
 using System.Threading;
 using System.Windows.Forms;
@@ -296,12 +297,9 @@ namespace Photo.Net.Tool.Window
                     return true;
                 }
 
-                foreach (Form ownedForm in this.OwnedForms)
+                if (this.OwnedForms.Any(ownedForm => ownedForm.ContainsFocus))
                 {
-                    if (ownedForm.ContainsFocus)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
 
                 return (this == CurrentModalForm);

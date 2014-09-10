@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
-using Photo.Net.Core.Geometry;
+using Photo.Net.Core.Area;
 using Photo.Net.Core.Struct;
 
 namespace Photo.Net.Core
@@ -1089,7 +1089,6 @@ namespace Photo.Net.Core
         /// <summary>
         /// Returns the Magnitude (distance to origin) of a point
         /// </summary>
-        // TODO: In v4.0 codebase, turn this into an extension method
         public static float Magnitude(PointF p)
         {
             return (float)Math.Sqrt(p.X * p.X + p.Y * p.Y);
@@ -1172,6 +1171,98 @@ namespace Photo.Net.Core
             PointF[] ptFs = new PointF[1] { ptF };
             matrix.TransformPoints(ptFs);
             return ptFs[0];
+        }
+
+        public static Point[] GetLinePoints(Point first, Point second)
+        {
+            Point[] coords = null;
+
+            int x1 = first.X;
+            int y1 = first.Y;
+            int x2 = second.X;
+            int y2 = second.Y;
+            int dx = x2 - x1;
+            int dy = y2 - y1;
+            int dxabs = Math.Abs(dx);
+            int dyabs = Math.Abs(dy);
+            int px = x1;
+            int py = y1;
+            int sdx = Math.Sign(dx);
+            int sdy = Math.Sign(dy);
+            int x = 0;
+            int y = 0;
+
+            if (dxabs > dyabs)
+            {
+                coords = new Point[dxabs + 1];
+
+                for (int i = 0; i <= dxabs; i++)
+                {
+                    y += dyabs;
+
+                    if (y >= dxabs)
+                    {
+                        y -= dxabs;
+                        py += sdy;
+                    }
+
+                    coords[i] = new Point(px, py);
+                    px += sdx;
+                }
+            }
+            else
+                // had to add in this cludge for slopes of 1 ... wasn't drawing half the line
+                if (dxabs == dyabs)
+                {
+                    coords = new Point[dxabs + 1];
+
+                    for (int i = 0; i <= dxabs; i++)
+                    {
+                        coords[i] = new Point(px, py);
+                        px += sdx;
+                        py += sdy;
+                    }
+                }
+                else
+                {
+                    coords = new Point[dyabs + 1];
+
+                    for (int i = 0; i <= dyabs; i++)
+                    {
+                        x += dxabs;
+
+                        if (x >= dyabs)
+                        {
+                            x -= dyabs;
+                            px += sdx;
+                        }
+
+                        coords[i] = new Point(px, py);
+                        py += sdy;
+                    }
+                }
+
+            return coords;
+        }
+
+        public static Rectangle PointsToRectangle(Point a, Point b)
+        {
+            int x = Math.Min(a.X, b.X);
+            int y = Math.Min(a.Y, b.Y);
+            int width = Math.Abs(a.X - b.X) + 1;
+            int height = Math.Abs(a.Y - b.Y) + 1;
+
+            return new Rectangle(x, y, width, height);
+        }
+
+        public static RectangleF PointsToRectangle(PointF a, PointF b)
+        {
+            float x = Math.Min(a.X, b.X);
+            float y = Math.Min(a.Y, b.Y);
+            float width = Math.Abs(a.X - b.X) + 1;
+            float height = Math.Abs(a.Y - b.Y) + 1;
+
+            return new RectangleF(x, y, width, height);
         }
     }
 }

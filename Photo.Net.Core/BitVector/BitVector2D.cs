@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Drawing;
-using Photo.Net.Core.Geometry;
+using Photo.Net.Core.Area;
 
 namespace Photo.Net.Core.BitVector
 {

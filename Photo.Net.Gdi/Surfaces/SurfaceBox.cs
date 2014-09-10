@@ -8,8 +8,8 @@ using System.Windows.Forms;
 using Photo.Net.Base;
 using Photo.Net.Base.Infomation;
 using Photo.Net.Core;
+using Photo.Net.Core.Area;
 using Photo.Net.Core.Color;
-using Photo.Net.Core.Geometry;
 using Photo.Net.Gdi.Event;
 using Photo.Net.Gdi.Graphic;
 using ThreadPool = Photo.Net.Base.Thread.ThreadPool;
@@ -122,6 +122,8 @@ namespace Photo.Net.Gdi.Surfaces
             this._rendererList.Invalidated += Renderers_Invalidated;
             this._baseRenderer = new SurfaceBoxBaseRenderer(this._rendererList, null);
             this._rendererList.Add(this._baseRenderer, false);
+
+            this.DoubleBuffered = true;
         }
 
         #region Events
